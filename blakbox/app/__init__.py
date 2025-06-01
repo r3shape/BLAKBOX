@@ -1,5 +1,6 @@
-import blakbox.app.ui as ui
-import blakbox.app.resource as resource
-
-from blakbox.app.app import BOXscene
-from blakbox.app.app import BOXapplication
+from .clock import BOXclock
+from .events import BOXevents
+from .inputs import BOXmouse
+from .inputs import BOXkeyboard
+from .window import BOXwindow
+from .base import BOXapplication
