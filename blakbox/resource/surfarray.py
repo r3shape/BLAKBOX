@@ -1,6 +1,6 @@
 from .frame import BOXframe
-from .base import BOXresource
-from blakbox.atom import BOXflag, BOXprivate
+from blakbox.atom import BOXprivate
+from .base import BOXresource, BOXresourceFlag
 from blakbox.globals import pg
 from blakbox.utils import add_v2, div_v2
 
@@ -28,7 +28,7 @@ class BOXsurfarray(BOXframe):
             layout: list[int],
             loop: bool=True,
             speed: float=5.0,
-            scale: list[int] = None,
+            scale: list[int] = [1, 1],
             color: list[int] = [0, 0, 0],
             color_key: list[int] = None,
         ) -> None:
@@ -47,7 +47,7 @@ class BOXsurfarray(BOXframe):
         self._color: list[int] = self.data[7]
         self._color_key: list[int] = self.data[8]
         self._count: int = self._layout[0] * self._layout[1]
-        if loop: self.set_flag(BOXflag.LOOP)
+        if loop: self.set_flag(BOXresourceFlag.LOOP)
         self._freeze()
     
     @property
@@ -106,7 +106,7 @@ class BOXsurfarray(BOXframe):
 
     @BOXprivate
     def update(self, dt: float) -> None:
-        if self.get_flag(BOXflag.DONE): return
+        if self.get_flag(BOXresourceFlag.DONE): return
         
         self._unfreeze()
         self._timer += dt
@@ -115,9 +115,9 @@ class BOXsurfarray(BOXframe):
             self._index += 1
         
             if self._index >= self._count:
-                if self.get_flag(BOXflag.LOOP):
+                if self.get_flag(BOXresourceFlag.LOOP):
                     self._index = 0
                 else:
                     self._index = self._count - 1
-                    self.set_flag(BOXflag.DONE)
+                    self.set_flag(BOXresourceFlag.DONE)
         self._freeze()

@@ -1,6 +1,5 @@
 from .frame import BOXframe
-from .base import BOXresource
-from blakbox.atom import BOXflag
+from .base import BOXresource, BOXresourceFlag
 from blakbox.utils import add_v2, div_v2
 
 class BOXobject(BOXframe):
@@ -86,7 +85,7 @@ class BOXobject(BOXframe):
 
     def update(self, dt: float) -> None:
         vel = self.vel
-        if self.get_flag(BOXflag.BOUNDED):
+        if self.get_flag(BOXresourceFlag.BOUNDED):
             self._pos[0] = max(0, min(self._bounds[0], self._pos[0] + vel[0] * dt))
             self._pos[1] = max(0, min(self._bounds[1], self._pos[1] + vel[1] * dt))
         else:

@@ -1,3 +1,4 @@
+from .base import BOXpipelineFlag
 from blakbox.globals import pg
 from blakbox.utils import sub_v2
 from blakbox.atom import BOXprivate, BOXatom
@@ -39,7 +40,7 @@ class BOXrenderer(BOXatom):
         self._unfreeze()
         self._commits: int = 0
         self._commitv: list[int] = []
-        self._clip_range: list[int] = [1, 1]
+        self._clip_range: list[int] = [8, 8]
         self._scene: blakbox.scene.base.BOXscene = scene
         self._resource: blakbox.resource.base.BOXresource = scene._resource
         self._window: blakbox.app.window.BOXwindow = scene.app.window
@@ -70,6 +71,13 @@ class BOXrenderer(BOXatom):
     def clip_range(self) -> list[int]:
         return self._clip_range
     
+    @clip_range.setter
+    def clip_range(self, clip_range: list[int]) -> None:
+        if not isinstance(clip_range, list): return
+        self._unfreeze()
+        self._clip_range = clip_range[:]
+        self._freeze()
+    
     def commit(self, commit: BOXrenderCommit) -> None:
         if self._commits + 1 >= 4096: return
         if not isinstance(commit.object, blakbox.resource.BOXobject): return
@@ -80,9 +88,19 @@ class BOXrenderer(BOXatom):
 
         # screen-space clipping
         cx, cy = self._clip_range
-        if x + w <= cx or x >= self._window._size[0] - cx\
-        or y + h <= cy or y >= self._window._size[1] - cy:
-            return
+        if self.get_flag(BOXpipelineFlag.SCREEN_CLIP):
+            if x + w <= cx or x >= self._window._size[0] - cx\
+            or y + h <= cy or y >= self._window._size[1] - cy:
+                print(f"Screen Clipped: {x},{y}")
+                return
+        
+        # view-space clipping
+        camx, camy = self._camera._pos
+        if self.get_flag(BOXpipelineFlag.VIEW_CLIP):
+            if x + w <= camx + cx or x >= camx + (self._window.size[0] - cx)\
+            or y + h <= camy + cy or y >= camy + (self._window.size[1] - cy):
+                print(f"View Clipped: {x},{y}")
+                return
 
         commit = [commit.object, commit.surface]
 

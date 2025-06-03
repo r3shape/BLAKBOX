@@ -1,5 +1,4 @@
 import blakbox.log as log
-import blakbox.atom as atom
 import blakbox.utils as utils
 
 import blakbox.app as app

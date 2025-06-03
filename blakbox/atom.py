@@ -72,20 +72,3 @@ class BOXatom:
         if flag < 0 or not isinstance(flag, int): return
         self._mask &= ~flag
 
-class BOXflag(BOXatom):
-    __slots__ = (
-        "BOUNDED",
-        "LOOP",
-        "DONE",
-    )
-
-    def __init__(self):
-        super().__init__()
-        self._unfreeze()
-        self.BOUNDED: int = (1 << 0)
-        self.LOOP: int = (1 << 1)
-        self.DONE: int = (1 << 2)
-        self._freeze()
-        
-BOXflag = BOXflag()
-

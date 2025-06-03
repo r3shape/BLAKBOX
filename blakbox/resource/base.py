@@ -8,6 +8,22 @@ from collections import namedtuple
 BOXhandle = namedtuple("BOXhandle", ["resource", "index"])
 BOXresourceData = namedtuple("BOXresourceData", ["surface", "surfarray", "object"])
 
+class BOXresourceFlag(BOXatom):
+    __slots__ = (
+        "BOUNDED",
+        "LOOP",
+        "DONE",
+    )
+
+    def __init__(self):
+        super().__init__()
+        self._unfreeze()
+        self.BOUNDED: int = (1 << 0)
+        self.LOOP: int = (1 << 1)
+        self.DONE: int = (1 << 2)
+        self._freeze()        
+BOXresourceFlag = BOXresourceFlag()
+
 class BOXresource(BOXatom):
     __slots__ = (
         "_resource",
@@ -34,10 +50,11 @@ class BOXresource(BOXatom):
         self._atlas.fill([1, 2, 3])
         self._freeze()
         
-    def _load_surface(self, filepath: str, scale: list[int] = None, color_key: list[int] = None) -> pg.Surface:
+    def _load_surface(self, filepath: str, scale: list[int] = [1, 1], color_key: list[int] = None) -> pg.Surface:
         surface = pg.image.load(filepath).convert_alpha()
+        print(scale)
         if scale:
-            surface = pg.transform.scale(surface, scale)
+            surface = pg.transform.scale(surface, mul_v2(surface.size, scale))
         if color_key:
             surface.set_colorkey(color_key)
         return surface
@@ -140,12 +157,12 @@ class BOXresource(BOXatom):
             self,
             filepath: str,
             size: list[int],
-            scale: list[int] = None,
+            scale: list[int] = [1, 1],
             layout: list[int] = [1, 1],
             color: list[int] = [0, 0, 0],
             color_key: list[int] = None
             ) -> BOXhandle:
-        if not os.path.exists(filepath):
+        if isinstance(filepath, str) and not os.path.exists(filepath):
             BOXlogger.error(f"[BOXresource] filepath not found: {filepath}")
             return BOXhandle(-1, -1)
         
@@ -155,21 +172,28 @@ class BOXresource(BOXatom):
             BOXlogger.warning(f"[BOXresource] resource max reached")
             return BOXhandle(-1, -1)
 
-        surf = self._load_surface(filepath, scale, color_key)
+        if filepath is None:
+            surf = pg.Surface(mul_v2(size, scale), pg.SRCALPHA)
+            surf.fill(color)
+        else:
+            surf = self._load_surface(filepath, scale, color_key)
+        
+        if color_key:
+            surf.set_colorkey(color_key)
 
         x, y = self._atlas_pos
-        w, h = mul_v2(size, layout[:])
+        w, h = mul_v2(mul_v2(size, scale), layout[:])
         if x + w >= self._atlas_size[0]:
             self._atlas_pos[0] = 0
             if y + h + self._resource[resource][index - 1][1][1] > self._atlas_size[1]:
                 BOXlogger.error(f"[BOXresource] atlas too small")
                 return BOXhandle(-1, -1)
-            for pos, size in self._resource[resource]:
-                if h < size[1]:
-                    h = size[1]
+            for _, s in self._resource[resource]:
+                if h < s[1]:
+                    h = s[1]
             self._atlas_pos[1] += h
 
-        data = [filepath, self._atlas_pos[:], size[:], layout[:], pg.Rect(self._atlas_pos, size), scale, color, color_key]
+        data = [filepath, self._atlas_pos[:], mul_v2(size, scale), layout, pg.Rect(self._atlas_pos, mul_v2(size, scale)), scale, color, color_key]
         self._atlas.blit(surf, self._atlas_pos)
         self._atlas_pos[0] += w
 

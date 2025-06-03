@@ -1,4 +1,5 @@
-from blakbox.atom import BOXprivate, BOXatom, BOXflag
+from .base import BOXpipelineFlag
+from blakbox.atom import BOXprivate, BOXatom
 from blakbox.utils import mul_v2, scale_v2, scale_v2i
 
 import blakbox
@@ -84,7 +85,7 @@ class BOXcamera(BOXatom):
     @BOXprivate
     def update(self, dt: float) -> None:
         vel = self.vel
-        if self.get_flag(BOXflag.BOUNDED):
+        if self.get_flag(BOXpipelineFlag.BOUNDED):
             self._pos[0] = max(0, min(self._bounds[0], self._pos[0] + vel[0] * dt))
             self._pos[1] = max(0, min(self._bounds[1], self._pos[1] + vel[1] * dt))
         else:

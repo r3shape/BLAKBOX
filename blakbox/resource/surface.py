@@ -19,7 +19,7 @@ class BOXsurface(BOXframe):
             self, resource: BOXresource,
             filepath: str,
             size: list[int],
-            scale: list[int] = None,
+            scale: list[int] = [1, 1],
             layout: list[int] = [1, 1],
             color: list[int] = [0, 0, 0],
             color_key: list[int] = None,
