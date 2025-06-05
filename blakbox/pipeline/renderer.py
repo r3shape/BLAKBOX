@@ -1,16 +1,18 @@
-from blakbox.globals import pg
-from blakbox.atom import BOXatom
-from blakbox.app.window import BOXwindow
-from blakbox.pipeline.camera import BOXcamera
-from blakbox.resource.object import BOXobject
-from blakbox.resource.particle import BOXparticles
+from ..globals import pg
+from ..atom import BOXatom
+from ..utils import equal_arrays
+from ..app.window import BOXwindow
+from ..pipeline.camera import BOXcamera
+from ..resource.object import BOXobject
+from ..resource.particle import BOXparticles
 
 # ------------------------------------------------------------ #
 class BOXrenderer(BOXatom):
     class flags:
-        DEBUG_OBJECT: int = (1 << 0)
-        DEBUG_CAMERA: int = (1 << 1)
-        DEBUG_TILEMAP: int = (1 << 2)
+        Y_SORT: int = 1 << 0
+        DEBUG_OBJECT: int = 1 << 1
+        DEBUG_CAMERA: int = 1 << 2
+        DEBUG_TILEMAP: int = 1 << 3
 
 
     def __init__(self, scene, window: BOXwindow, camera: BOXcamera) -> None:
@@ -22,6 +24,9 @@ class BOXrenderer(BOXatom):
         
         self.blits: int = 0
         self.blitv: list = []
+
+        self.target = pg.Surface(self.camera.viewport_size)
+        self.last_viewport_size: list[int] = self.camera.viewport_size
 
         self.debug_object_color: list[int] = [0, 255, 0]
         self.debug_camera_color: list[int] = [255, 0, 0]
@@ -52,7 +57,7 @@ class BOXrenderer(BOXatom):
             surf, rect = object.rotated
         else:
             surf = pg.transform.rotate(surface, object.rotation)
-            rect = surf.get_rect(center=object.center)
+            rect = surf.get_frect(center=object.center)
 
         self.blitv.append([object.pos[1], surf, rect, object.pos])
         self.blits += 1
@@ -89,7 +94,11 @@ class BOXrenderer(BOXatom):
         
         if self.get_flag(self.flags.DEBUG_TILEMAP): self.debug_tilemap()
 
-        self.blitv.sort(key=lambda blit: blit.pop(0))
+        
+        if self.get_flag(self.flags.Y_SORT):
+            self.blitv.sort(key=lambda blit: blit.pop(0))
+        else:
+            [blit.pop(0) for blit in self.blitv]
         for _ in range(self.blits):
             surf, rect, pos = self.blitv.pop(0)
             self.window.blits(surf, pos, rect=rect)

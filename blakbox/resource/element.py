@@ -1,4 +1,4 @@
-from ..globals import pg
+from ..globals import pg, Optional
 from ..log import BOXlogger
 from ..app.inputs import BOXmouse
 from ..app.events import BOXevents
@@ -35,159 +35,135 @@ class BOXelement(BOXatom):
         
         # Visual Flags
         ANTI_ALIAS: int              = 1 << 18
-        DISPLAY_LIST: int            = 1 << 19
+        DISPLAY_ROW: int             = 1 << 19
+        DISPLAY_LIST: int            = 1 << 20
 
     def __init__(
             self,
-            text: str = None,
-            font: pg.Font = None,
             pos: list[float] = [0, 0],
-            padding: list[int] = [0, 0],
-            size: list[int] = [100, 100],
-            offset: list[float] = [0, 0],
-            color: list[int] = [155, 155, 155],
-            text_color: list[int] = [0, 0, 0],
-            text_offset: list[float] = [0, 0],
+            size: list[int] = [10, 10],
+            color: list[int] = [255, 255, 255],
             border_width: int = 1,
-            border_size: list[int] = [1, 1],
-            border_color: list[int] = [255, 0, 0],
+            border_color: list[int] = [0, 0, 0],
             border_radius: list[int] = [0, 0, 0, 0],
-        ) -> None:
+    ) -> None:
         super().__init__()
-        self.text: str = text
-        self.font: pg.Font = font
-        self.pos: list[float] = pos[:]
         self.size: list[int] = size[:]
+        self.pos: list[float] = pos[:]
         self.color: list[int] = color[:]
-        self.padding: list[int] = padding[:]
-        self.offset: list[float] = offset[:]
-        self.text_color: list[int] = text_color[:]
-        self.text_pos: list[float] = text_offset[:]
         
         self.border_width: int = border_width
         self.border_color: list[int] = border_color[:]
         self.border_radius: list[int] = border_radius[:]
 
+        self.parent: Optional[BOXelement] = None
+        self.children: dict[str, BOXelement] = {}
+
         self.surface: pg.Surface = pg.Surface(size, pg.SRCALPHA)
         self.surface.fill(color)
 
-        self.elements: dict[str, BOXelement] = {}
+        self.set_flag(BOXelement.flags.VISIBLE)
+        self.set_flag(BOXelement.flags.SHOW_BORDER)
+        self.set_flag(BOXelement.flags.SHOW_SURFACE)
+        self.set_flag(BOXelement.flags.SHOW_ELEMENTS)
 
-        self.set_flag(self.flags.VISIBLE)
-        self.set_flag(self.flags.SHOW_TEXT)
-        self.set_flag(self.flags.ANTI_ALIAS)
-        self.set_flag(self.flags.SHOW_SURFACE)
+    def on_click(self) -> None: pass
+    def on_hover(self) -> None: pass
+    def on_unhover(self) -> None: pass
+    def on_render(self, surface: pg.Surface) -> None: pass
+    def on_update(self, events: BOXevents) -> None: pass
 
     @property
-    def rect(self) -> pg.Rect:
-        return pg.Rect(self.pos, self.size)
+    def absolute_pos(self) -> list[float]:
+        if self.parent:
+            return add_v2(self.pos, self.parent.absolute_pos)
+        return self.pos[:]
+
+    @property
+    def absolute_rect(self) -> pg.Rect:
+        return pg.Rect(self.absolute_pos, self.size)
 
     def set_element(self, key: str, element: "BOXelement") -> None:
-        if self.get_element(key): return
-        element.pos = add_v2(element.pos, self.pos)
-        self.elements[key] = element
+        if key in self.children: return
+        element.parent = self
+        self.children[key] = element
+        BOXlogger.info(f"[BOXinterface] Set element: (key){key}")
     
     def get_element(self, key: str) -> "BOXelement":
-        return self.elements.get(key, None)
+        return self.children.get(key, None)
     
     def rem_element(self, key: str) -> None:
-        if self.get_element(key) is not None:
-            elem = self.elements.pop(key)
-            del elem
+        if key not in self.children: return
+        self.children[key].parent = None
+        del self.children[key]
+        BOXlogger.info(f"[BOXinterface] Removed element: (key){key}")
 
-    def on_click(self) -> None: BOXlogger.info("[BOXelement] on click!")
-    def on_hover(self) -> None: BOXlogger.info("[BOXelement] on hover!")
-    def on_unhover(self) -> None: BOXlogger.info("[BOXelement] on unhover!")
+    def clear(self) -> None:
+        for element in self.children.values():
+            element.parent = None
+            element.clear()
+        self.children.clear()
+        BOXlogger.info("[BOXinterface] Cleared all elements")
 
-    def get_position(self, screen_size: list[int]) -> list[int]:
-        x, y = self.pos
-        w, h = self.size
-        sw, sh = screen_size
-        ox, oy = self.offset
+    def _render(self, surface: pg.Surface) -> None:
+        if not self.get_flag(BOXelement.flags.VISIBLE):
+            return
 
-        if self.get_flag(self.flags.ANCHOR_TOP_LEFT):
-            x, y = ox, oy
-        elif self.get_flag(self.flags.ANCHOR_TOP_CENTER):
-            x, y = sw // 2 - w // 2 - ox, oy
-        elif self.get_flag(self.flags.ANCHOR_TOP_RIGHT):
-            x, y = sw - w - ox, oy
-        elif self.get_flag(self.flags.ANCHOR_CENTER):
-            x, y = sw // 2 - w // 2 - ox, sh // 2 - h // 2 - oy
-        elif self.get_flag(self.flags.ANCHOR_BOTTOM_LEFT):
-            x, y = ox, sh - h - oy
-        elif self.get_flag(self.flags.ANCHOR_BOTTOM_CENTER):
-            x, y = sw // 2 - w // 2 - ox, sh - h - oy
-        elif self.get_flag(self.flags.ANCHOR_BOTTOM_RIGHT):
-            x, y = sw - w - ox, sh - h - oy
+        if self.get_flag(BOXelement.flags.SHOW_SURFACE):
+            self.surface.fill(self.color)
+            self.on_render(self.surface)
+            surface.blit(self.surface, self.absolute_pos)
 
-        if self.font:
-            tw, th = self.font.size(self.text)
-            if self.get_flag(self.flags.ALIGN_LEFT):
-                x += tw
-            elif self.get_flag(self.flags.ALIGN_RIGHT):
-                x -= tw
-            elif self.get_flag(self.flags.ALIGN_CENTER):
-                x -= tw // 2
-                y -= th // 2
+            if self.get_flag(BOXelement.flags.SHOW_ELEMENTS):
+                for child in self.children.values():
+                    child._render(surface)
+        else:
+            self.on_render(surface)
+            if self.get_flag(BOXelement.flags.SHOW_ELEMENTS):
+                for child in self.children.values():
+                    child._render(surface)
 
-        return [x, y]
-    
-    def update(self, events: BOXevents) -> None:
-        for element in self.elements.values():
-            element.update(events)
-
-            mw = point_inside(
-                BOXmouse.pos.screen,
-                [*element.get_position(self.window.screen_size), *element.size]
+        if self.get_flag(BOXelement.flags.SHOW_BORDER):
+            pg.draw.rect(
+                surface=surface,
+                rect=self.absolute_rect,
+                color=self.border_color,
+                width=self.border_width,
+                border_top_left_radius=self.border_radius[0],
+                border_top_right_radius=self.border_radius[1],
+                border_bottom_left_radius=self.border_radius[2],
+                border_bottom_right_radius=self.border_radius[3]
             )
-            if not element.get_flag(element.flags.HOVERED) and mw:
-                BOXmouse.Hovering = BOXelement
-                element.set_flag(element.flags.HOVERED)
-                element.on_hover()
-            if element.get_flag(element.flags.HOVERED) and not mw:
-                BOXmouse.Hovering = None
-                element.rem_flag(element.flags.HOVERED)
-                element.on_unhover()
-            if element.get_flag(element.flags.HOVERED) and events.mouse_pressed(BOXmouse.LeftClick):
-                events.mouse[BOXmouse.LeftClick] = 0    # should't need this, but fixes the element double-click issue :|
-                element.on_click()
 
-    def blit(self, window: BOXwindow) -> None:
-        target = window.screen
+# def get_position(self, screen_size: list[int]) -> list[int]:
+#     x, y = self.pos
+#     w, h = self.size
+#     sw, sh = screen_size
+#     ox, oy = self.offset
 
-        last_size = [0, 0]
-        if self.get_flag(self.flags.SHOW_ELEMENTS):
-            for i, element in enumerate(self.elements.values()):
-                if self.get_flag(self.flags.DISPLAY_LIST):
-                    element.offset[1] = last_size[1] * i
-                pos = element.get_position(window.screen_size)
+#     if self.get_flag(self.flags.ANCHOR_TOP_LEFT):
+#         x, y = ox, oy
+#     elif self.get_flag(self.flags.ANCHOR_TOP_CENTER):
+#         x, y = sw // 2 - w // 2 - ox, oy
+#     elif self.get_flag(self.flags.ANCHOR_TOP_RIGHT):
+#         x, y = sw - w - ox, oy
+#     elif self.get_flag(self.flags.ANCHOR_CENTER):
+#         x, y = sw // 2 - w // 2 - ox, sh // 2 - h // 2 - oy
+#     elif self.get_flag(self.flags.ANCHOR_BOTTOM_LEFT):
+#         x, y = ox, sh - h - oy
+#     elif self.get_flag(self.flags.ANCHOR_BOTTOM_CENTER):
+#         x, y = sw // 2 - w // 2 - ox, sh - h - oy
+#     elif self.get_flag(self.flags.ANCHOR_BOTTOM_RIGHT):
+#         x, y = sw - w - ox, sh - h - oy
 
-                surface = None
-                if element.get_flag(element.flags.SHOW_TEXT):
-                    surface = element.font.render(element.text, self.get_flag(element.flags.ANTI_ALIAS), element.text_color)
+#     if self.font:
+#         tw, th = self.font.size(self.text)
+#         if self.get_flag(self.flags.ALIGN_LEFT):
+#             x += tw
+#         elif self.get_flag(self.flags.ALIGN_RIGHT):
+#             x -= tw
+#         elif self.get_flag(self.flags.ALIGN_CENTER):
+#             x -= tw // 2
+#             y -= th // 2
 
-                if element.get_flag(element.flags.SHOW_SURFACE):
-                    if surface:
-                        s = element.surface
-                        s.fill(element.color)
-                        s.blit(surface, add_v2(element.text_pos, element.padding))
-                        surface = s
-                    else:
-                        surface = element.surface
-                
-                if element.get_flag(element.flags.SHOW_BORDER):
-                    pg.draw.rect(
-                        surface=surface,
-                        rect=surface.get_rect(),
-                        color=element.border_color,
-                        width=element.border_width,
-                        border_top_left_radius=element.border_radius[0],
-                        border_top_right_radius=element.border_radius[1],
-                        border_bottom_left_radius=element.border_radius[2],
-                        border_bottom_right_radius=element.border_radius[3]
-                    )
-                
-                if surface:
-                    target.blit(surface, pos)
-                element.blit(window)
-                last_size = element.size
+#     return [x, y]

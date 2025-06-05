@@ -21,7 +21,6 @@ class BOXwindow(BOXatom):
         self.screen_size: list[int] = screen_size[:]
         self.screen = pg.display.set_mode(screen_size)
         self.screen.fill(clear_color)
-        self.aspect_ratio: int = int(self.screen_size[1] / self.screen_size[0])
 
         self.display_size: list[int] = display_size[:]
         self.display = pg.Surface(display_size, pg.SRCALPHA)
@@ -51,14 +50,14 @@ class BOXwindow(BOXatom):
     def _rad_clip(self, pos: list[float], offset: list[float], radius: float = 0) -> bool:
         pos = add_v2(pos, offset)
         return ((pos[0] + radius < self.clip_range[0])               or
-                (pos[0] > self.display_size[0]) or
+                (pos[0] > self.display_size[0] - self.clip_range[0])  or
                 (pos[1] + radius < self.clip_range[1])               or
-                (pos[1] > self.display_size[1]))
+                (pos[1] > self.display_size[1]) - self.clip_range[1])
 
     def _blit_clip(self, pos: list[float], size: list[int], offset: list[float]) -> bool:
         pos = add_v2(pos, offset)
-        return ((pos[0] + size[0]) <= self.clip_range[0] or pos[0] >= self.display_size[0]\
-            or  (pos[1] + size[1]) <= self.clip_range[1] or pos[1] >= self.display_size[1])
+        return (pos[0] + size[0] < self.clip_range[0] or pos[0] > self.display_size[0] - self.clip_range[0]\
+            or  pos[1] + size[1] < self.clip_range[1] or pos[1] > self.display_size[1] - self.clip_range[1])
 
     def draw_line(
             self, 
@@ -74,9 +73,24 @@ class BOXwindow(BOXatom):
         pos: list[float],
         size: list[float],
         offset: list[float]=[0, 0],
-        color: list[float]=[255, 255, 255], width: int=1) -> None:
+        color: list[float]=[255, 255, 255],
+        width: int=1,
+        border_top_left_radius: int = 0,
+        border_top_right_radius: int = 0,
+        border_bottom_left_radius: int = 0,
+        border_bottom_right_radius: int = 0
+        ) -> None:
         if self._blit_clip(pos, size, offset): return
-        pg.draw.rect(self.display, color, pg.Rect(add_v2(pos, offset), size), width=width)
+        pg.draw.rect(
+            surface=self.display,
+            color=color,
+            rect=pg.Rect(add_v2(pos, offset), size),
+            width=width,
+            border_top_left_radius=border_top_left_radius,
+            border_top_right_radius=border_top_right_radius,
+            border_bottom_left_radius=border_bottom_left_radius,
+            border_bottom_right_radius=border_bottom_right_radius
+        )
 
     def draw_circle(
         self,

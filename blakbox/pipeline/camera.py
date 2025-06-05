@@ -1,20 +1,20 @@
 from ..globals import pg
-from ..app import BOXwindow
+from ..app.window import BOXwindow
 from ..resource import BOXobject
-from ..utils import add_v2, sub_v2, div_v2, scale_v2
+from ..utils import add_v2, sub_v2, div_v2, scale_v2i
 
 # ------------------------------------------------------------ #
 class BOXcamera(BOXobject):
     def __init__(self, window: BOXwindow) -> None:
         super().__init__(size=[1, 1], color=[0, 0, 0], bounds=window.display_size)
         self.drag: int = 10
-        self.zoom: float = 1.0
+        self.zoom_min: int = 50
         self.window: BOXwindow = window
         self.viewport_size: list[int] = window.display_size
         self.viewport_scale = [window.screen_size[0] / self.viewport_size[0],
                                window.screen_size[1] / self.viewport_size[1]]
         
-        self.mod_viewport(-self.viewport_size[0] - self.viewport_size[1])
+        self.mod_viewport(-(self.viewport_size[0] - self.viewport_size[1]) // 2)
         self.set_flag(self.flags.BOUNDED)
 
     @property
@@ -23,26 +23,24 @@ class BOXcamera(BOXobject):
 
     @property
     def offset(self) -> list[float]:
-        return scale_v2(self.pos, -1.0)
+        return scale_v2i(self.pos, -1)
     
     def center_rect(self, size: list[int]) -> pg.Rect:
         return pg.Rect(sub_v2(add_v2(self.pos, div_v2(self.viewport_size, 2)), div_v2(size, 2)), size)
 
     def mod_viewport(self, delta: float) -> list[int]:
-        delta *= min(self.viewport_size) * 0.1  # scale the delta by 10% of the viewport size
-        aspect_ratio = self.viewport_size[0] / self.viewport_size[1]
+        delta *= min(self.viewport_size) * 0.1  # scale the delta
 
-        new_width = min(self.bounds[0], max(260, self.viewport_size[0] + delta))
-        new_height = min(self.bounds[1], max(260, self.viewport_size[1] + delta))
+        aspect_ratio = self.window.screen_size[0] / self.window.screen_size[1]
 
-        if new_width / new_height != aspect_ratio:
-            if new_width == self.bounds[0]:
-                new_height = new_width / aspect_ratio
-            if new_height == self.bounds[1]:
-                new_width = new_height * aspect_ratio
+        new_height = min(self.bounds[1], max(self.zoom_min, self.viewport_size[1] + delta))
+        new_width = new_height * aspect_ratio
+
+        if new_width > self.bounds[0]:
+            new_width = self.bounds[0]
+            new_height = new_width / aspect_ratio
 
         self.viewport_size = [new_width, new_height]
-
         return self.viewport_size
 
     def follow(self, object: BOXobject) -> None:

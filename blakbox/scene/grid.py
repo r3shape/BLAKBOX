@@ -1,8 +1,10 @@
-from blakbox.atom import BOXatom
-from blakbox.utils import div2_v2i, div_v2
-from blakbox.resource.object import BOXobject
+from ..globals import pg
+from ..log import BOXlogger
+from ..utils import div2_v2i, div_v2
+from ..atom import BOXprivate, BOXatom
 
-# ------------------------------------------------------------ #
+from ..resource import BOXobject
+
 class BOXgrid(BOXatom):
     def __init__(
             self,
@@ -10,7 +12,7 @@ class BOXgrid(BOXatom):
             grid_size: list[int]
         ) -> None:
         super().__init__()
-        self.all = []
+        self.all: list[BOXobject] = []
         self.grid_width: int = grid_size[0]                                 # in cells
         self.grid_height: int = grid_size[1]                                # in cells
         self.grid_size: list[int] = grid_size                               # in cells
@@ -31,17 +33,17 @@ class BOXgrid(BOXatom):
                 region.append([x, y])
         return region
 
-    def world_to_cell(self, pos: list[float]) -> list[int]:
+    def to_grid_pos(self, pos: list[float]) -> list[int]:
         gx, gy = map(int, div_v2(pos, self.cell_width))
         if gx < 0 or gy < 0 or gx > self.grid_width or gy > self.grid_height:
             return None
         else: return [gx, gy]
 
-    def cell_to_world(self, cell: list[int]) -> list[int]:
+    def from_grid_pos(self, cell: list[int]) -> list[int]:
         return [cell[0] * self.cell_width, cell[1] * self.cell_height]
 
     def get(self, pos: list[float]) -> list:
-        grid_pos = self.world_to_cell(pos)
+        grid_pos = self.to_grid_pos(pos)
         if grid_pos is None: return
         
         index = grid_pos[1] * self.grid_width + grid_pos[0]
@@ -101,10 +103,9 @@ class BOXgrid(BOXatom):
 
     def update(self) -> None:
         for object in self.all:
-            object.grid_cell = self.world_to_cell(object.pos)
-            if object.grid_cell != object._last_cell:
-                if object._last_cell:
-                    self.rem(object, self.cell_to_world(object._last_cell))
+            object.grid_cell = self.to_grid_pos(object.pos)
+            if object.grid_cell != object.last_grid_cell:
+                if object.last_grid_cell:
+                    self.rem(object, self.from_grid_pos(object.last_grid_cell))
                 self.set(object, object.pos)
-                object._last_cell = object.grid_cell
-# ------------------------------------------------------------ #
+                object.last_grid_cell = object.grid_cell

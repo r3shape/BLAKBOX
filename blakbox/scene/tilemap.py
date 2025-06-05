@@ -1,7 +1,10 @@
-from blakbox.atom import BOXatom
-from blakbox.utils import div2_v2i, mul_v2
-from blakbox.globals import os, pg, json, random
-from blakbox.scene.grid import BOXgrid, BOXobject
+from ..log import BOXlogger
+from ..atom import BOXprivate, BOXatom
+from ..globals import os, pg, json, random
+from ..utils import div2_v2i, mul_v2, load_surface_array
+
+from .grid import BOXgrid
+from ..resource import BOXobject
 
 class BOXtilemap(BOXatom):
     def __init__(
@@ -9,9 +12,9 @@ class BOXtilemap(BOXatom):
             tile_size: list[int],
             grid_size: list[int],
         ) -> None:
-        super().__init__()
         self._config(scene, tile_size, grid_size)
-    
+
+    @BOXprivate    
     def _config(self,scene,
             tile_size: list[int],
             grid_size: list[int],) -> None:
@@ -40,6 +43,7 @@ class BOXtilemap(BOXatom):
                 region.append([x, y])
         return region
 
+
     """ TILE OBJECT """
     def all_tiles(self, layer:str) -> list[BOXobject]:
         return [tile for tile in self.layers[layer][1] if tile]
@@ -62,7 +66,6 @@ class BOXtilemap(BOXatom):
             color=[random.randint(0, 255), random.randint(0, 255), random.randint(0, 255)]
         ); tile_object.id = tile; tile_object.surface = self.tilesets[tileset][1][tile]
 
-        self.scene.resource.store_object(f"tile-{tile_object.pos}", tile_object)
         self.grid.set(tile_object)
 
         self.layers[layer][0][index] = [tile, tileset]
@@ -77,7 +80,6 @@ class BOXtilemap(BOXatom):
         index = int(gy * self.tile_size[0] + gx)
         if index < 0 or index >= (self.tile_size[0] * self.tile_size[1]): return
 
-        # return self.scene.resource.get_object(f"tile-{self.layers[layer][1][index].pos}")
         return self.layers[layer][1][index]
     
     def rem_tile(self, layer: str, pos: list[int]) -> None:
@@ -91,7 +93,6 @@ class BOXtilemap(BOXatom):
 
         if self.layers[layer][1][index] == None: return
         
-        self.scene.resource.rem_object(f"tile-{self.layers[layer][1][index].pos}")
         self.grid.rem(self.layers[layer][1][index])
         
         self.layers[layer][0][index] = None
@@ -122,10 +123,10 @@ class BOXtilemap(BOXatom):
             if index < 0 or index >= (self.tile_size[0] * self.tile_size[1]): continue
             if self.layers[layer][1][index] == None: continue
             
-            self.scene.resource.rem_object(f"tile-{self.layers[layer][1][index].pos}")
             self.layers[layer][1][index] = None
 
         self.grid.rem_region(size, pos)
+
 
     """ TILE DATA """
     def import_data(self, path:str) -> bool:
@@ -141,7 +142,7 @@ class BOXtilemap(BOXatom):
             tilesets = config["tilesets"]
             for i, tileset in enumerate(tilesets):
                 if os.path.exists:
-                    self.tilesets.append([tileset, self.scene.resource.pg_load_surface_sheet(tileset, self.tile_size)])
+                    self.tilesets.append([tileset, load_surface_array(tileset, self.tile_size)])
                 else:
                     print(f"Path Not Found: {tileset}")
                     return False

@@ -48,6 +48,13 @@ class BOXapp(BOXatom):
         self.scenes[key] = scene(self)
         BOXlogger.info(f"[BOXapp] scene added: (key){key}")
 
+    def get_scene(self, key: str) -> BOXscene:
+        if not isinstance(key, str): return
+        if key not in self.scenes:
+            BOXlogger.warning(f"[BOXapp] scene not found: (key){key}")
+            return
+        return self.scenes[key]
+
     def set_scene(self, key: str) -> None:
         if self.scenes.get(key, False) == False:
             BOXlogger.warning(f"[BOXapp] scene not found: (key){key}")
@@ -72,12 +79,12 @@ class BOXapp(BOXatom):
                 self.scene.events()
                 self.scene.update(self.clock.dt)
                 self.scene.camera.update(self.clock.dt)
+                self.scene.interface.update(self.events)
                 if isinstance(self.scene.tilemap, BOXtilemap):
                     self.scene.tilemap.grid.update()
                 self.scene.render()
                 self.scene.renderer.flush()
-                self.scene.interface.update(self.events)
-                self.scene.interface.flush(self.window)
+                self.scene.interface.render()
             
             BOXmouse.pos.rel = pg.mouse.get_rel()
             BOXmouse.pos.screen = pg.mouse.get_pos()
@@ -86,6 +93,7 @@ class BOXapp(BOXatom):
             self.clock.update()
         else:
             if isinstance(self.scene, BOXscene):
+                self.scene.interface.clear()
                 self.scene.exit()
             self.cache.clear()
             self.exit()

@@ -1,6 +1,6 @@
 """
-Note: `configure()`, `cleanup()`, `handle_events()`, `handle_update()` and `handle_render()` must be defined for any instance of `BOXapplication` or `BOXscene`.
-
+Note: THIS SCRIPT IS CURRENTLY DEPRECATED
+ ~ d34d0s
 """
 
 import random

@@ -10,5 +10,6 @@ import inspect
 os.environ["PYGAME_HIDE_SUPPORT_PROMPT"] = str(True)
 import pygame as pg
 
+from typing import Optional
 from datetime import datetime
 from sys import getsizeof as sizeof

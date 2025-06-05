@@ -40,7 +40,7 @@ class BOXobject(BOXatom):
 
     @property
     def rect(self) -> pg.Rect:
-        return pg.Rect(self.pos, self.size)
+        return pg.FRect(self.pos, self.size)
 
     @property
     def center(self) -> list[float]:
@@ -57,7 +57,7 @@ class BOXobject(BOXatom):
     @property
     def rotated(self) -> tuple[pg.Surface, pg.Rect]:
         rot_surf = pg.transform.rotate(self.surface, self.rotation)
-        rot_rect = rot_surf.get_rect(center=self.center)
+        rot_rect = rot_surf.get_frect(center=self.center)
         return rot_surf, rot_rect
 
     def set_color(self, color: list[int], fill: bool = False) -> None:

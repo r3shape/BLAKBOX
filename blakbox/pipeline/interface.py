@@ -1,91 +1,100 @@
-from blakbox.globals import pg
-from blakbox.atom import BOXatom
-from blakbox.utils import add_v2, sub_v2, point_inside
+from ..globals import pg
+from ..atom import BOXatom
+from ..utils import add_v2, sub_v2, point_inside
 
-from blakbox.app.inputs import BOXmouse
-from blakbox.app.window import BOXwindow
-from blakbox.app.events import BOXevents
-from blakbox.resource.element import BOXelement
+from ..log import BOXlogger
+from ..app.inputs import BOXmouse
+from ..app.window import BOXwindow
+from ..app.events import BOXevents
+from ..resource import BOXelement
 
 class BOXinterface(BOXatom):
-    class flags:
-        # Visual Flags
-        SHOW_ELEMENTS: int = 1 << 0
-        DISPLAY_LIST: int = 1 << 1
-
     def __init__(self, window: BOXwindow) -> None:
         super().__init__()
         self.window: BOXwindow = window
         self.elements: dict[str, BOXelement] = {}
-        self.set_flag(self.flags.SHOW_ELEMENTS)
 
-    def set_element(self, key: str, element: "BOXelement") -> None:
-        if self.get_element(key): return
+        self.gap: int = 0
+        self.margin: list[int] = [0, 0]
+        self.padding: list[int] = [0, 0]
+
+        self._posv: list[list[int]] = []
+        self._sizev: list[list[int]] = []
+
+    def set_element(self, key: str, element: BOXelement) -> None:
+        if key in self.elements: return
+        self._sizev.append(element.size)
+        self._posv.append(element.pos)
         self.elements[key] = element
+        BOXlogger.info(f"[BOXinterface] Set element: (key){key}")
     
-    def get_element(self, key: str) -> "BOXelement":
+    def get_element(self, key: str) -> BOXelement:
         return self.elements.get(key, None)
     
     def rem_element(self, key: str) -> None:
-        if self.get_element(key) is not None:
-            elem = self.elements.pop(key)
-            del elem
+        if key not in self.elements: return
+        self._sizev.remove(self.elements[key].size)
+        self._posv.remove(self.elements[key].pos)
+        self.elements[key].parent = None
+        del self.elements[key]
+        BOXlogger.info(f"[BOXinterface] Removed element: (key){key}")
 
-    def update(self, events: BOXevents) -> None:
+    def clear(self) -> None:
         for element in self.elements.values():
-            mw = point_inside(
-                BOXmouse.pos.screen,
-                [*element.get_position(self.window.screen_size), *element.size]
-            )
-            if not element.get_flag(element.flags.HOVERED) and mw:
-                BOXmouse.Hovering = BOXelement
-                element.set_flag(element.flags.HOVERED)
-                element.on_hover()
-            if element.get_flag(element.flags.HOVERED) and not mw:
-                BOXmouse.Hovering = None
-                element.rem_flag(element.flags.HOVERED)
-                element.on_unhover()
-            if element.get_flag(element.flags.HOVERED) and events.mouse_pressed(BOXmouse.LeftClick):
-                events.mouse[BOXmouse.LeftClick] = 0    # should't need this, but fixes the element double-click issue :|
-                element.on_click()
+            element.parent = None
+            element.clear()
+        self.elements.clear()
+        BOXlogger.info("[BOXinterface] Cleared all elements")
 
-    def flush(self, window: BOXwindow) -> None:
-        target = window.screen
+    def layout(self, offset: list[int], element: BOXelement) -> None:
+        if self.get_flag(BOXelement.flags.DISPLAY_ROW):
+            element.pos = add_v2(offset[:], add_v2(self.padding, self.margin))
+            offset[0] += element.size[0] + self.gap
+        elif self.get_flag(BOXelement.flags.DISPLAY_LIST):
+            element.pos = offset[:]
+            offset[1] += element.size[1] + self.gap
 
-        last_size = [0, 0]
-        if self.get_flag(self.flags.SHOW_ELEMENTS):
-            for i, element in enumerate(self.elements.values()):
-                if self.get_flag(self.flags.DISPLAY_LIST):
-                    element.offset[1] = last_size[1] * i
-                
-                pos = element.get_position(window.screen_size)
+    def update(self, events: BOXevents) -> bool:
+        def handle_element(element: BOXelement) -> bool:
+            if not element.get_flag(BOXelement.flags.VISIBLE):
+                return False
 
-                surface = None
-                if element.get_flag(element.flags.SHOW_TEXT):
-                    surface = element.font.render(element.text, self.get_flag(element.flags.ANTI_ALIAS), element.text_color)
+            if element.get_flag(BOXelement.flags.SHOW_ELEMENTS):
+                for child in reversed(list(element.children.values())):
+                    if handle_element(child):
+                        return True
 
-                if element.get_flag(element.flags.SHOW_SURFACE):
-                    if surface:
-                        s = element.surface
-                        s.fill(element.color)
-                        s.blit(surface, add_v2(element.text_pos, element.padding))
-                        surface = s
-                    else:
-                        surface = element.surface
-                
-                if element.get_flag(element.flags.SHOW_BORDER):
-                    pg.draw.rect(
-                        surface=surface,
-                        rect=surface.get_rect(),
-                        color=element.border_color,
-                        width=element.border_width,
-                        border_top_left_radius=element.border_radius[0],
-                        border_top_right_radius=element.border_radius[1],
-                        border_bottom_left_radius=element.border_radius[2],
-                        border_bottom_right_radius=element.border_radius[3]
-                    )
-                
-                if surface:
-                    target.blit(surface, pos)
-                element.blit(window)
-                last_size = element.size
+            element.on_update(events)
+            if point_inside(mouse_pos, [*element.absolute_pos, *element.size]):
+                if not element.get_flag(BOXelement.flags.HOVERED):
+                    element.set_flag(BOXelement.flags.HOVERED)
+                    element.on_hover()
+                if mouse_down:
+                    element.set_flag(BOXelement.flags.CLICKED)
+                    element.on_click()
+                else:
+                    element.rem_flag(BOXelement.flags.CLICKED)
+                return True
+            else:
+                if element.get_flag(BOXelement.flags.HOVERED):
+                    element.rem_flag(BOXelement.flags.HOVERED)
+                    element.on_unhover()
+                if element.get_flag(BOXelement.flags.CLICKED):
+                    if not mouse_down:
+                        element.rem_flag(BOXelement.flags.CLICKED)
+                return False
+
+        mouse_pos = BOXmouse.pos.screen
+        mouse_down = events.mouse_pressed(BOXmouse.LeftClick)
+
+        layout_offset = [0, 0]
+        for element in reversed(list(self.elements.values())):
+            self.layout(layout_offset, element)
+            if handle_element(element):
+                return True
+
+        return False
+    
+    def render(self) -> None:
+        for element in self.elements.values():
+            element._render(self.window.screen)

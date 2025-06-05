@@ -1,5 +1,6 @@
+from .atom import BOXatom
+from .log import BOXlogger
 import blakbox.app as app
-import blakbox.log as log
 import blakbox.utils as utils
 import blakbox.scene as scene
 import blakbox.pipeline as pipeline

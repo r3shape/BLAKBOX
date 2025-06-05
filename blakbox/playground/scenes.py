@@ -6,10 +6,11 @@ class Launcher(blakbox.scene.BOXscene):
         super().__init__(app, tile_size=[64, 64], grid_size=[100, 100])
 
     def init(self):
-        self.interface.set_flag(self.interface.flags.DISPLAY_LIST)
-        self.interface.set_element("play", elements.PlayButton(self, self.cache.get_font("f1")))
+        self.interface.set_element("e1", elements.PlayButton(self))
 
-    def exit(self): pass
+    def exit(self):
+        blakbox.log.BOXlogger.info("[BOXscene] Scene Exiting...")
+
     def events(self): pass
     def update(self, dt: float): pass
     def render(self): pass
@@ -19,15 +20,16 @@ class Main(blakbox.scene.BOXscene):
         super().__init__(app, tile_size=[64, 64], grid_size=[100, 100])
     
     def init(self):
-        self.renderer.set_flag(self.renderer.flags.DEBUG_CAMERA)
+        # self.renderer.set_flag(self.renderer.flags.DEBUG_CAMERA)
         self.renderer.set_flag(self.renderer.flags.DEBUG_OBJECT)
         self.renderer.set_flag(self.renderer.flags.DEBUG_TILEMAP)
 
         self.o1 = blakbox.resource.BOXobject(size=[32, 32], color=[255, 0, 0])
-        self.cache.load_surface("s1", blakbox.utils.rel_path("assets/images/geo.png"))
+
+        self.interface.set_element("e1", elements.PlayButton(self))
 
     def exit(self):
-        blakbox.log.BOXlogger.info("Scene Exiting...")
+        blakbox.log.BOXlogger.info("[BOXscene] Scene Exiting...")
 
     def events(self):
         if self.app.events.mouse_wheel_up:
