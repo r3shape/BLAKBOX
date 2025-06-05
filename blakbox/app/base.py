@@ -1,141 +1,91 @@
+from ..globals import pg
+from ..atom import BOXprivate, BOXatom
+from ..log import BOXlogger
 from .clock import BOXclock
-
-from .inputs import BOXmouse
-from .events import BOXevents
-from .inputs import BOXkeyboard
-
 from .window import BOXwindow
+from .events import BOXevents
+from .inputs import BOXmouse
+from ..resource import BOXcache
 
-from blakbox.atom import BOXatom
-from blakbox.log import BOXlogger
+from ..scene import BOXscene
+from ..scene import BOXtilemap
 
-from blakbox.scene.base import BOXscene
-from blakbox.resource.base import BOXresource
-
-class BOXapplication(BOXatom):
-    __slots__ = (
-        "_name",
-        "_scene",
-        "_scenev",
-        "_clock",
-        "_resource",
-        "_mouse",
-        "_events",
-        "_keyboard",
-        "_window"
-    )
-
+class BOXapp(BOXatom):
     def __init__(
             self,
-            name: str = "BOXapp",
-            window_size: list[int] = [1280, 720]
-    ) -> None:
+            title: str,
+            clear_color: list[int],
+            screen_size: list[int],
+            display_size: list[int],
+    ):
         super().__init__()
+        self.title: str = title
+        self.cache: BOXcache = BOXcache()
+        self.clock: BOXclock = BOXclock()
+        self.events: BOXevents = BOXevents()
+        self.window: BOXwindow = BOXwindow(title, [1, 1], screen_size, display_size, clear_color)
 
-        self._unfreeze()
-        self._name: str = name
-        self._scene: BOXscene = None
-        self._scenev: list[BOXscene] = []
-        self._clock: BOXclock = BOXclock()
-        self._resource: BOXresource = BOXresource()
-        self._mouse: BOXmouse = BOXmouse()
-        self._events: BOXevents = BOXevents()
-        self._keyboard: BOXkeyboard = BOXkeyboard()
-        self._window: BOXwindow = BOXwindow(name, window_size)
-        self._freeze()
+        self.scene: BOXscene = None
+        self.scenes: dict[str, BOXscene] = {}
 
-        self.on_init()
+        self.init()
 
-    @property
-    def name(self) -> str:
-        return self._name
-
-    @property
-    def clock(self) -> BOXclock:
-        return self._clock
-
-    @property
-    def resource(self) -> BOXresource:
-        return self._resource
-
-    @property
-    def mouse(self) -> BOXmouse:
-        return self._mouse
-
-    @property
-    def keyboard(self) -> BOXkeyboard:
-        return self._keyboard
-
-    @property
-    def events(self) -> BOXevents:
-        return self._events
-
-    @property
-    def window(self) -> BOXwindow:
-        return self._window
-
-    @property
-    def scene(self) -> BOXscene:
-        return self._scene
-
-    def on_init(self) -> None:
+    def init(self) -> None:
+        BOXlogger.error(f'"{self.title}" Initialization Method Missing...')
         raise NotImplementedError
     
-    def on_exit(self) -> None:
+    def exit(self) -> None:
+        BOXlogger.error(f'"{self.title}" Exit Method Missing...')
         raise NotImplementedError
 
-    def add_scene(self, scene: BOXscene) -> int:
-        index = len(self._scenev)
-        if scene in self._scenev:
-            return index - 1
-        self._unfreeze()
-        self._scenev.append(scene)
-        self._freeze()
-        return index
-    
-    def set_scene(self, index: int) -> None:
-        if self._scene is not None:
-            self._scene.on_exit()
-        try:
-            self._unfreeze()
-            self._scene = self._scenev[index]
-            self._freeze()
-            self._scene.on_init()
-        except IndexError as err:
-            BOXlogger.error(f"Scene Not Found: (index){index} (err){err}")
+    def add_scene(self, key: str, scene: BOXscene) -> None:
+        if not isinstance(scene, type):
+            BOXlogger.warning(f"[BOXapp] pass the scene as a type: (key){key}")
+            return
+        if self.scenes.get(key, False) != False:
+            BOXlogger.warning(f"[BOXapp] scene already added: (key){key}")
+            return
+        self.scenes[key] = scene(self)
+        BOXlogger.info(f"[BOXapp] scene added: (key){key}")
 
-    def rem_scene(self, index: int) -> None:
-        try:
-            scene = self._scenev.pop(index)
-            if self.scene == scene:
-                scene.on_exit()
-                self._unfreeze()
-                self.scene = None
-                self._freeze()
-        except IndexError as err:
-            BOXlogger.error(f"Scene Not Found: (index){index} (err){err}")
-    
+    def set_scene(self, key: str) -> None:
+        if self.scenes.get(key, False) == False:
+            BOXlogger.warning(f"[BOXapp] scene not found: (key){key}")
+            return
+        self.scene = self.scenes[key]
+        BOXlogger.info(f"[BOXapp] scene set: (key){key}")
+        self.scene.init()
+        
+    def rem_scene(self, key: str) -> None:
+        if self.scenes.get(key, False) != False:
+            BOXlogger.warning(f"[BOXapp] scene not found: (key){key}")
+            return
+        self.scenes.pop(key).exit()
+        self.scene = None
+        BOXlogger.info(f"[BOXapp] scene removed: (key){key}")
+
     def run(self) -> None:
-        while not self._events.quit:
-            self._events.update()
-            self._clock.update()
-            self._window.clear()
+        while not self.events.quit:
+            self.clock.tick()
+            self.events.update()
+            if isinstance(self.scene, BOXscene):
+                self.scene.events()
+                self.scene.update(self.clock.dt)
+                self.scene.camera.update(self.clock.dt)
+                if isinstance(self.scene.tilemap, BOXtilemap):
+                    self.scene.tilemap.grid.update()
+                self.scene.render()
+                self.scene.renderer.flush()
+                self.scene.interface.update(self.events)
+                self.scene.interface.flush(self.window)
             
-            if self._scene is not None:
-                self._scene.on_event()
-                
-                self._scene._physics.update(self._clock._dt)
-                self._scene._world.update()
-                self._scene.on_update()
-                
-                self._scene._camera.update(self._clock._dt)
-                self._scene._renderer.update(self._clock._dt)
-                self._scene._interface.update()
-                
-            self._clock.tick()
-            self._window.flip()
-        else:
-            if self._scene is not None:
-                self._scene.on_exit()
-            self.on_exit()
+            BOXmouse.pos.rel = pg.mouse.get_rel()
+            BOXmouse.pos.screen = pg.mouse.get_pos()
 
+            self.window.update()
+            self.clock.update()
+        else:
+            if isinstance(self.scene, BOXscene):
+                self.scene.exit()
+            self.cache.clear()
+            self.exit()

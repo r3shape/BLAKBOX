@@ -1,68 +1,23 @@
-from blakbox.atom import BOXatom
-
 import blakbox
 
-class BOXscene(BOXatom):
-    __slots__ = (
-        "_app",
-        "_grid",
-        "_resource",
-        "_world",
-        "_camera",
-        "_physics",
-        "_renderer",
-        "_interface"
-    )
-
+# ------------------------------------------------------------ #
+class BOXscene(blakbox.atom.BOXatom):
     def __init__(
             self, app,
-            cell_size: int,
-            cell_count: list[int]
-    ) -> None:
+            tile_size: list[int] = [32, 32],
+            grid_size: list[int] = [50, 50]
+        ) -> None:
         super().__init__()
-
-        self._unfreeze()
-        self._app: blakbox.app.base.BOXapplication = app
-        self._resource: blakbox.resource.base.BOXresource = app._resource
-
-        self._physics: blakbox.pipeline.physics.BOXphysics = blakbox.pipeline.physics.BOXphysics(self)
-        self._grid: blakbox.scene.grid.BOXgrid = blakbox.scene.grid.BOXgrid(cell_size, cell_count)
+        self.app: blakbox.app.BOXapp = app
+        self.cache: blakbox.resource.BOXcache = app.cache
+        self.camera: blakbox.pipeline.BOXcamera = blakbox.pipeline.BOXcamera(app.window)
+        self.interface: blakbox.pipeline.BOXinterface = blakbox.pipeline.BOXinterface(app.window)
+        self.tilemap: blakbox.scene.BOXtilemap = blakbox.scene.BOXtilemap(self, tile_size, grid_size)
+        self.renderer: blakbox.pipeline.BOXrenderer = blakbox.pipeline.BOXrenderer(self, app.window, self.camera)
         
-        self._camera: blakbox.pipeline.camera.BOXcamera = blakbox.pipeline.camera.BOXcamera(self, [0, 0], self._grid.size)
-        self._interface: blakbox.pipeline.interface.BOXinterface = blakbox.pipeline.interface.BOXinterface(self)
-        self._renderer: blakbox.pipeline.render.BOXrenderer = blakbox.pipeline.render.BOXrenderer(self)
-        self._world: blakbox.pipeline.world.BOXworld = blakbox.pipeline.world.BOXworld(self)
-        self._freeze()
-        
-    @property
-    def app(self):
-        return self._app
-
-    @property
-    def grid(self):
-        return self._grid
-    
-    @property
-    def resource(self):
-        return self._app.resource
-
-    @property
-    def camera(self):
-        return self._camera
-
-    @property
-    def renderer(self):
-        return self._renderer
-    
-    def on_init(self) -> None:
-        raise NotImplementedError
-    
-    def on_exit(self) -> None:
-        raise NotImplementedError
-    
-    def on_event(self) -> None:
-        raise NotImplementedError
-    
-    def on_update(self) -> None:
-        raise NotImplementedError
-
+    def exit(self) -> None: raise NotImplementedError
+    def init(self) -> None: raise NotImplementedError
+    def events(self) -> None: raise NotImplementedError
+    def update(self, dt: float) -> None: raise NotImplementedError
+    def render(self) -> None: raise NotImplementedError
+# ------------------------------------------------------------ #

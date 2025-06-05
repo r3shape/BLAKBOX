@@ -1,7 +1,4 @@
-from .base import BOXresource
-from .frame import BOXframe
+from .base import BOXcache
 from .object import BOXobject
-from .surface import BOXsurface
-from .surfarray import BOXsurfarray
-
-from .base import BOXresourceFlag
+from .element import BOXelement
+from .particle import BOXparticles

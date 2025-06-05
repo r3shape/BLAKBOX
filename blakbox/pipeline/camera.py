@@ -1,97 +1,58 @@
-from .base import BOXpipelineFlag
-from blakbox.atom import BOXprivate, BOXatom
-from blakbox.utils import mul_v2, scale_v2, scale_v2i
+from ..globals import pg
+from ..app import BOXwindow
+from ..resource import BOXobject
+from ..utils import add_v2, sub_v2, div_v2, scale_v2
 
-import blakbox
-
-class BOXcamera(BOXatom):
-    __slots__ = (
-        "_scene",
-        "_window",
-        "_speed",
-        "_pos",
-        "_dir",
-        "_bounds"
-    )
-
-    def __init__(
-            self,
-            scene: blakbox.scene.base.BOXscene,
-            pos: list[float], bounds: list[int]
-    ) -> None:
-        super().__init__()
-
-        self._unfreeze()
-        self._speed: int = 120
-        self._pos: list[float] = pos[:]
-        self._dir: list[int] = [0, 0, 0, 0]
-        self._bounds: list[int] = scale_v2i(bounds[:], 1)
-        self._scene: blakbox.scene.base.BOXscene = scene
-        self._window: blakbox.app.window.BOXwindow = scene.app.window
-        self._freeze()
+# ------------------------------------------------------------ #
+class BOXcamera(BOXobject):
+    def __init__(self, window: BOXwindow) -> None:
+        super().__init__(size=[1, 1], color=[0, 0, 0], bounds=window.display_size)
+        self.drag: int = 10
+        self.zoom: float = 1.0
+        self.window: BOXwindow = window
+        self.viewport_size: list[int] = window.display_size
+        self.viewport_scale = [window.screen_size[0] / self.viewport_size[0],
+                               window.screen_size[1] / self.viewport_size[1]]
         
-    @property
-    def scene(self):
-        return self._scene
+        self.mod_viewport(-self.viewport_size[0] - self.viewport_size[1])
+        self.set_flag(self.flags.BOUNDED)
 
     @property
-    def window(self):
-        return self._window
+    def viewport(self) -> pg.Rect:
+        return pg.Rect(self.pos, self.viewport_size)
 
     @property
-    def speed(self) -> list[float]:
-        return self._speed
-
-    @property
-    def x(self) -> float:
-        return self._pos[0]
-
-    @property
-    def y(self) -> float:
-        return self._pos[1]
-
-    @property
-    def pos(self) -> list[float]:
-        return self._pos
+    def offset(self) -> list[float]:
+        return scale_v2(self.pos, -1.0)
     
-    @property
-    def dir(self) -> list[int]:
-        return self._dir
+    def center_rect(self, size: list[int]) -> pg.Rect:
+        return pg.Rect(sub_v2(add_v2(self.pos, div_v2(self.viewport_size, 2)), div_v2(size, 2)), size)
 
-    @property
-    def vx(self) -> float:
-        return (self._dir[3] - self._dir[2]) * self.speed
+    def mod_viewport(self, delta: float) -> list[int]:
+        delta *= min(self.viewport_size) * 0.1  # scale the delta by 10% of the viewport size
+        aspect_ratio = self.viewport_size[0] / self.viewport_size[1]
 
-    @property
-    def vy(self) -> float:
-        return (self._dir[1] - self._dir[0]) * self.speed
+        new_width = min(self.bounds[0], max(260, self.viewport_size[0] + delta))
+        new_height = min(self.bounds[1], max(260, self.viewport_size[1] + delta))
 
-    @property
-    def vel(self) -> list[float]:
-        return [self.vx, self.vy]
+        if new_width / new_height != aspect_ratio:
+            if new_width == self.bounds[0]:
+                new_height = new_width / aspect_ratio
+            if new_height == self.bounds[1]:
+                new_width = new_height * aspect_ratio
 
-    def move(
-            self,
-            up: bool = None,
-            down: bool = None,
-            left: bool = None,
-            right: bool = None
-    ) -> None:
-        if up:      self._dir[0] = up
-        if down:    self._dir[1] = down
-        if left:    self._dir[2] = left
-        if right:   self._dir[3] = right
+        self.viewport_size = [new_width, new_height]
 
-    @BOXprivate
-    def update(self, dt: float) -> None:
-        vel = self.vel
-        if self.get_flag(BOXpipelineFlag.BOUNDED):
-            self._pos[0] = max(0, min(self._bounds[0], self._pos[0] + vel[0] * dt))
-            self._pos[1] = max(0, min(self._bounds[1], self._pos[1] + vel[1] * dt))
-        else:
-            self._pos[0] += vel[0] * dt
-            self._pos[1] += vel[1] * dt
-        
-        self._dir[0], self._dir[1], self._dir[2], self._dir[3] = 0, 0, 0, 0
+        return self.viewport_size
 
+    def follow(self, object: BOXobject) -> None:
+        dist = add_v2(sub_v2(self.center, object.center), div_v2(self.viewport_size, 2))
+        self.vel = [(-dist[0] * object.speed / 4) * (1 / self.drag),
+                    (-dist[1] * object.speed / 4) * (1 / self.drag)]
 
+    def update(self, dt):
+        self.viewport_scale = [self.window.screen_size[0] / self.viewport_size[0],
+                               self.window.screen_size[1] / self.viewport_size[1]]
+        self.pos[0] = max(0, min(self.bounds[0] - self.viewport_size[0], self.pos[0] + self.transform[0] * dt))
+        self.pos[1] = max(0, min(self.bounds[1] - self.viewport_size[1], self.pos[1] + self.transform[1] * dt))
+# ------------------------------------------------------------ #

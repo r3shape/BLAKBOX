@@ -1,4 +1,4 @@
-import os, math
+from .globals import pg, re, os, math
 
 
 sine_wave_value = lambda A, B, t, C, D: int(A * math.sin((B * t) + C) + D)
@@ -112,3 +112,56 @@ def bsort(data: list[int]) -> list[int]:
                 temp = data[j]
                 data[j] = data[j+1]
                 data[j+1] = temp
+
+create_surface = lambda size, color: pg.Surface(size, pg.SRCALPHA)
+create_rect = lambda location, size: pg.Rect(location, size)
+
+fill_surface = lambda surface, color: surface.fill(color)
+flip_surface = lambda surface, x, y: pg.transform.flip(surface, x, y)
+scale_surface = lambda surface, scale: pg.transform.scale(surface, scale)
+rotate_surface = lambda surface, angle: pg.transform.rotate(surface, angle)
+
+blit_rect = lambda surface, rect, color, width: draw_rect(surface, rect.size, rect.topleft, color, width)
+draw_line = lambda surface, start, end, color, width: pg.draw.line(surface, color, start, end, width=width)
+draw_rect = lambda surface, size, location, color, width: pg.draw.rect(surface, color, pg.Rect(location, size), width=width)
+draw_circle = lambda surface, center, radius, color, width: pg.draw.circle(surface, color, [*map(int, center)], radius, width)
+
+def load_surface(path: str, scale: list[int] = None, color_key: list[int] = None) -> pg.Surface:
+    surface = pg.image.load(path).convert_alpha()
+    if color_key:
+        surface.set_colorkey(color_key)
+    if scale:
+        surface = scale_surface(surface, scale)
+    return surface
+
+def surface_visible(surface: pg.Surface, threshold: int = 1) -> bool:
+    pixels, transparent = 0, 0
+    for y in range(surface.get_height()):
+        for x in range(surface.get_width()):
+            if surface.get_at((x, y)).a == 0:
+                transparent += 1
+            pixels += 1
+    return (pixels - transparent) >= threshold
+
+def load_surface_array(path: str, frame_size: list[int], scale: list[int] = None, color_key: list[int] = None) -> list[pg.Surface]:
+    sheet = load_surface(path, scale, color_key)
+    frames = []
+    frame_x = sheet.get_width() // frame_size[0]
+    frame_y = sheet.get_height() // frame_size[1]
+
+    for row in range(frame_y):
+        for col in range(frame_x):
+            x = col * frame_size[0]
+            y = row * frame_size[1]
+            frame = pg.Surface(frame_size, pg.SRCALPHA).convert_alpha()
+            if color_key:
+                frame.set_colorkey(color_key)
+            if scale:
+                frame = pg.transform.scale(frame, mul_v2(frame.size, scale))
+            frame.blit(sheet, [0, 0], pg.Rect([x, y], frame_size))  # texture sampling :)
+            frames.append(frame)
+    return frames
+
+def numeral_sort(strings: list[str]) -> list[str]:
+    """this sorts strings like: 'img1.png', 'img2.png', 'img10.png'."""
+    return sorted(strings, key=lambda s: [int(t) if t.isdigit() else t for t in re.split(r'(\d+)', s)])

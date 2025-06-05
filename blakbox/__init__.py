@@ -1,10 +1,9 @@
+import blakbox.app as app
 import blakbox.log as log
 import blakbox.utils as utils
-
-import blakbox.app as app
 import blakbox.scene as scene
-import blakbox.resource as resource
 import blakbox.pipeline as pipeline
+import blakbox.resource as resource
 
 from .globals import os, random
 import blakbox.quotes as quotes

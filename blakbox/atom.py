@@ -11,42 +11,10 @@ def BOXprivate(func):
     return wrapper
 
 class BOXatom:
-    __slots__ = ("_mask", "_type", "_uid", "_frozen")
-
     def __init__(self) -> None:
         self._mask: int = 0
         self._type: int = 0
         self._uid: int = id(self)
-        self._frozen: bool = False
-        self._freeze()
-    
-    def __setattr__(self, name, value):
-        if getattr(self, "_frozen", False) and name in self.__slots__:
-            BOXlogger.error(f"[BOXatom] This field is immutable, cannot assign: {self}.{name} = {value}")
-            return
-        super().__setattr__(name, value)
-
-    def __delattr__(self, name):
-        if getattr(self, "_frozen", False) and name in self.__slots__:
-            BOXlogger.error(f"[BOXatom] This field is immutable, cannot delete: (name){name}")
-            return
-        super().__delattr__(name)
-    
-    @BOXprivate
-    def _freeze(self) -> None:
-        if self._frozen == True:
-            return
-        self._frozen = True
-    
-    @BOXprivate
-    def _unfreeze(self) -> None:
-        if self._frozen == False:
-            return
-        self._frozen = False
-
-    @property
-    def frozen(self) -> bool:
-        return self._frozen
 
     @property
     def mask(self) -> int:

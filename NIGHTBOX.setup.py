@@ -18,5 +18,10 @@ setuptools.setup(
     classifiers=[
         'Programming Language :: Python :: 3.12',
         'Operating System :: OS Independent',
-    ]
+    ],
+    entry_points = {
+        'console_scripts': [
+            'blakbox.play = blakbox.playground.main:main'
+        ]
+    }
 )
