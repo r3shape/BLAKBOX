@@ -9,8 +9,10 @@ class Playground(blakbox.app.BOXapp):
         blakbox.log.BOXlogger.debug("Welcome to the Blakbox Playground!")
         blakbox.log.BOXlogger.debug("Hosted by your's truly @r3shape <3")
 
-        self.cache.load_surface("s1", blakbox.utils.rel_path("assets/images/geo.png"))
-        self.cache.load_font("f1", blakbox.utils.box_path("assets/fonts/slkscr.ttf"), 18)
+        self.cache.load_font("slkscr", blakbox.utils.box_path("assets/fonts/slkscr.ttf"), 18)
+        self.cache.load_font("megamax", blakbox.utils.box_path("assets/fonts/megamax.ttf"), 18)
+        self.cache.load_surface("logo", blakbox.utils.box_path("assets/images/logo-anim.png"))
+        self.cache.load_animation("logo-anim", blakbox.utils.box_path("assets/images/logo-anim.png"), [32, 32], 12)
 
         self.add_scene("Launcher", scenes.Launcher)
         self.add_scene("Main", scenes.Main)

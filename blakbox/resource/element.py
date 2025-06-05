@@ -110,7 +110,6 @@ class BOXelement(BOXatom):
             return
 
         if self.get_flag(BOXelement.flags.SHOW_SURFACE):
-            self.surface.fill(self.color)
             self.on_render(self.surface)
             surface.blit(self.surface, self.absolute_pos)
 

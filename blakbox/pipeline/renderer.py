@@ -1,6 +1,6 @@
 from ..globals import pg
 from ..atom import BOXatom
-from ..utils import equal_arrays
+from ..utils import add_v2
 from ..app.window import BOXwindow
 from ..pipeline.camera import BOXcamera
 from ..resource.object import BOXobject
@@ -41,7 +41,7 @@ class BOXrenderer(BOXatom):
         if not isinstance(objects, list): return
         for object in objects: self.commit(object)
 
-    def commit(self, object: BOXobject, surface: pg.Surface = None) -> None:
+    def commit(self, object: BOXobject, surface: pg.Surface = None, offset: list[float] = None) -> None:
         if not isinstance(object, BOXobject): return
         if self.blits + 1 > 4096: return
         if object is None: return
@@ -59,7 +59,7 @@ class BOXrenderer(BOXatom):
             surf = pg.transform.rotate(surface, object.rotation)
             rect = surf.get_frect(center=object.center)
 
-        self.blitv.append([object.pos[1], surf, rect, object.pos])
+        self.blitv.append([object.pos[1], surf, rect, object.pos, offset])
         self.blits += 1
 
     """ DEBUG RENDERING """
@@ -100,8 +100,12 @@ class BOXrenderer(BOXatom):
         else:
             [blit.pop(0) for blit in self.blitv]
         for _ in range(self.blits):
-            surf, rect, pos = self.blitv.pop(0)
-            self.window.blits(surf, pos, rect=rect)
+            surf, rect, pos, offset = self.blitv.pop(0)
+            if offset is None:
+                self.window.blits(surf, pos, rect=rect)
+            else:
+                self.window.blits(surf, add_v2(pos, offset))
+
             if self.get_flag(self.flags.DEBUG_OBJECT): self.debug_object(rect)
         self.blits = 0
 

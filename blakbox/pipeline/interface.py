@@ -97,4 +97,5 @@ class BOXinterface(BOXatom):
     
     def render(self) -> None:
         for element in self.elements.values():
+            element.surface.fill(element.color)
             element._render(self.window.screen)

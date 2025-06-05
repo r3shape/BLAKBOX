@@ -8,9 +8,10 @@ class BOXcache(BOXatom):
         pg.font.init()
         pg.mixer.init()
         pg.display.init()
-        self.fonts = {}    # key -> (pg.Font, (path, size))
-        self.sounds = {}   # key -> (pg.mixer.Sound, path)
-        self.surfaces = {} # key -> (pg.Surface, path)
+        self.fonts = {}         # key -> (pg.Font, (path, size))
+        self.sounds = {}        # key -> (pg.mixer.Sound, path)
+        self.surfaces = {}      # key -> (pg.Surface, path)
+        self.animations = {}    # key -> (list[pg.Surface], list[index, timer, duration, loop])
 
     @BOXprivate
     def _load_surface(self, path: str) -> pg.Surface:
@@ -19,6 +20,22 @@ class BOXcache(BOXatom):
         except Exception as e:
             BOXlogger.error(f"[BOXcache] Failed to load surface '{path}': {e}")
             return None
+
+    @BOXprivate
+    def _load_animation(self, path: str, frame_size: list[int]) -> list[pg.Surface]:
+        sheet = self._load_surface(path)
+        frame_x = sheet.get_width() // frame_size[0]
+        frame_y = sheet.get_height() // frame_size[1]
+
+        frames = []
+        for row in range(frame_y):
+            for col in range(frame_x):
+                x = col * frame_size[0]
+                y = row * frame_size[1]
+                frame = pg.Surface(frame_size, pg.SRCALPHA).convert_alpha()
+                frame.blit(sheet, [0, 0], pg.Rect([x, y], frame_size))  # texture sampling :)
+                frames.append(frame)
+        return frames
 
     @BOXprivate
     def _load_font(self, path: str, size: int) -> pg.font.Font:
@@ -38,7 +55,7 @@ class BOXcache(BOXatom):
 
     def load_surface(self, key: str, path: str) -> bool:
         if key in self.surfaces:
-            BOXlogger.warning(f"[BOXcache] Surface key '{key}' already exists. Use reload_surface() to overwrite.")
+            BOXlogger.warning(f"[BOXcache] Surface key already exists: '{key}'. Use reload_surface() to overwrite.")
             return False
         surface = self._load_surface(path)
         if surface:
@@ -51,7 +68,7 @@ class BOXcache(BOXatom):
         surface = self._load_surface(path)
         if surface:
             self.surfaces[key] = (surface, path)
-            BOXlogger.info(f"[BOXcache] Reloaded surface with key '{key}'")
+            BOXlogger.info(f"[BOXcache] Reloaded surface with key: '{key}'")
             return True
         return False
 
@@ -61,11 +78,68 @@ class BOXcache(BOXatom):
     def unload_surface(self, key: str) -> None:
         if key in self.surfaces:
             del self.surfaces[key]
-            BOXlogger.info(f"[BOXcache] Unloaded surface with key '{key}'")
+            BOXlogger.info(f"[BOXcache] Unloaded surface with key: '{key}'")
+
+    def load_animation(self, key: str, path: str, frame_size: list[int], frame_duration: float, loop: bool = True) -> None:
+        if key in self.surfaces:
+            BOXlogger.warning(f"[BOXcache] Animation key already exists: '{key}'. Use reload_animation() to overwrite.")
+            return False
+        
+        frames = self._load_animation(path, frame_size)
+        if frames:
+            self.animations[key] = [frames, [0, 0.0, len(frames), 1/frame_duration, loop]]
+            BOXlogger.info(f"[BOXcache] Animation loaded: (key){key} (path){path}")
+            return True
+        return False
+    
+    def reload_animation(self, key: str, path: str, frame_size: list[int], frame_duration: float, loop: bool = True) -> bool:
+        frames = self._load_animation(path, frame_size)
+        if frames:
+            self.animations[key] = [frames, [0, 0.0, len(frames), 1/frame_duration, loop]]
+            BOXlogger.info(f"[BOXcache] Reloaded animation with key: '{key}'")
+            return True
+        return False
+
+    def get_animation(self, key: str) -> list:
+        return self.animations.get(key, None)
+
+    def get_animation_frames(self, key: str) -> list:
+        return self.animations.get(key, None)[0]
+
+    def get_animation_data(self, key: str) -> list:
+        return self.animations.get(key, None)[1]
+    
+    def get_animation_frame(self, key: str) -> list:
+        data = self.get_animation(key)
+        if not data:
+            BOXlogger.info(f"[BOXcache] Animation not found: '{key}'")
+            return
+        return data[0][data[1][0]]
+    
+    def update_animation(self, key: str, dt: float) -> None:
+        data = self.get_animation(key)
+        if not data:
+            BOXlogger.info(f"[BOXcache] Animation not found: '{key}'")
+            return
+
+        data[1][1] += dt
+        if data[1][1] >= data[1][3]:
+            data[1][1] = 0
+            data[1][0] += 1
+            if data[1][0] >= data[1][2]:
+                if data[1][4]:
+                    data[1][0] = 0
+                else:
+                    data[1][0] = data[1][2] - 1
+
+    def unload_animation(self, key: str) -> None:
+        if key in self.animations:
+            del self.animations[key]
+            BOXlogger.info(f"[BOXcache] Unloaded animation with key: '{key}'")
 
     def load_font(self, key: str, path: str, size: int) -> bool:
         if key in self.fonts:
-            BOXlogger.warning(f"[BOXcache] Font key '{key}' already exists. Use reload_font() to overwrite.")
+            BOXlogger.warning(f"[BOXcache] Font key already exists: '{key}'. Use reload_font() to overwrite.")
             return False
         font = self._load_font(path, size)
         if font:
@@ -78,7 +152,7 @@ class BOXcache(BOXatom):
         font = self._load_font(path, size)
         if font:
             self.fonts[key] = (font, (path, size))
-            BOXlogger.info(f"[BOXcache] Reloaded font with key '{key}'")
+            BOXlogger.info(f"[BOXcache] Reloaded font with key: '{key}'")
             return True
         return False
 
@@ -88,11 +162,11 @@ class BOXcache(BOXatom):
     def unload_font(self, key: str) -> None:
         if key in self.fonts:
             del self.fonts[key]
-            BOXlogger.info(f"[BOXcache] Unloaded font with key '{key}'")
+            BOXlogger.info(f"[BOXcache] Unloaded font with key: '{key}'")
 
     def load_sound(self, key: str, path: str) -> bool:
         if key in self.sounds:
-            BOXlogger.warning(f"[BOXcache] Sound key '{key}' already exists. Use reload_sound() to overwrite.")
+            BOXlogger.warning(f"[BOXcache] Sound key already exists: '{key}'. Use reload_sound() to overwrite.")
             return False
         sound = self._load_sound(path)
         if sound:
@@ -105,7 +179,7 @@ class BOXcache(BOXatom):
         sound = self._load_sound(path)
         if sound:
             self.sounds[key] = (sound, path)
-            BOXlogger.info(f"[BOXcache] Reloaded sound with key '{key}'")
+            BOXlogger.info(f"[BOXcache] Reloaded sound with key: '{key}'")
             return True
         return False
 
@@ -115,7 +189,7 @@ class BOXcache(BOXatom):
     def unload_sound(self, key: str) -> None:
         if key in self.sounds:
             del self.sounds[key]
-            BOXlogger.info(f"[BOXcache] Unloaded sound with key '{key}'")
+            BOXlogger.info(f"[BOXcache] Unloaded sound with key: '{key}'")
 
     def clear(self) -> None:
         self.fonts.clear()
