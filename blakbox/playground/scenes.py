@@ -64,4 +64,4 @@ class Main(blakbox.scene.BOXscene):
         self.app.window.mod_title(f"{self.app.clock.fps}")
 
     def render(self):
-        self.renderer.commit(self.o1, self.cache.get_animation_frame("logo-anim"))
+        self.renderer.commit_object(self.o1, self.cache.get_animation_frame("logo-anim"))

@@ -1,5 +1,7 @@
 from .globals import pg, re, os, math
 
+lerp = lambda a, b, t: a + (b - a) * t
+""" Simple Linear Interpolation"""
 
 sine_wave_value = lambda A, B, t, C, D: int(A * math.sin((B * t) + C) + D)
 """

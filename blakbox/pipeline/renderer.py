@@ -1,4 +1,4 @@
-from ..globals import pg
+from ..globals import pg, Overload
 from ..atom import BOXatom
 from ..utils import add_v2
 from ..app.window import BOXwindow
@@ -32,23 +32,40 @@ class BOXrenderer(BOXatom):
         self.debug_camera_color: list[int] = [255, 0, 0]
         self.debug_tilemap_color: list[int] = [50, 50, 50]
 
-        def _particles_001(x, y, lifetime, size, color) -> None:
-            self.window.draw_circle(center=(int(x), int(y)), radius=int(size), color=color, width=1)
-        self.particles_001 = _particles_001
-
     """ RENDER CALL"""
-    def commitv(self, objects: list[BOXobject]) -> None:
+    def commit_objectv(self, objects: list[BOXobject]) -> None:
         if not isinstance(objects, list): return
-        for object in objects: self.commit(object)
+        for object in objects: self.commit_object(object)
+    
+    def commit_surface(self, surface: pg.Surface, pos: list[int], offset: list[float] = None) -> None:
+        if not isinstance(surface, pg.Surface): return
+        if self.blits + 1 > 4096: return
+        if surface is None: return
 
-    def commit(self, object: BOXobject, surface: pg.Surface = None, offset: list[float] = None) -> None:
+        # frustum culling
+        x, y = pos
+        w, h = surface.size
+        cx, cy = self.camera.pos
+        cw, ch = self.camera.viewport_size
+        if x + w < cx or x > cx + cw\
+        or y + h < cy or y > cy + ch:
+            return
+        
+        self.blitv.append([y, surface, pg.Rect(pos, surface.size), [x, y], offset])
+        self.blits += 1
+
+    def commit_object(self, object: BOXobject, surface: pg.Surface = None, offset: list[float] = None) -> None:
         if not isinstance(object, BOXobject): return
         if self.blits + 1 > 4096: return
         if object is None: return
 
         # frustum culling
-        if object.pos[0] + object.size[0] < self.camera.pos[0] or object.pos[0] > self.camera.pos[0] + self.camera.viewport_size[0]\
-        or object.pos[1] + object.size[1] < self.camera.pos[1] or object.pos[1] > self.camera.pos[1] + self.camera.viewport_size[1]:
+        x, y = object.pos
+        w, h = object.size
+        cx, cy = self.camera.pos
+        cw, ch = self.camera.viewport_size
+        if x + w < cx or x > cx + cw\
+        or y + h < cy or y > cy + ch:
             object.rem_flag(object.flags.VISIBLE)
             return
         else: object.set_flag(object.flags.VISIBLE)
@@ -59,7 +76,7 @@ class BOXrenderer(BOXatom):
             surf = pg.transform.rotate(surface, object.rotation)
             rect = surf.get_frect(center=object.center)
 
-        self.blitv.append([object.pos[1], surf, rect, object.pos, offset])
+        self.blitv.append([y, surf, rect, [x, y], offset])
         self.blits += 1
 
     """ DEBUG RENDERING """
@@ -94,7 +111,6 @@ class BOXrenderer(BOXatom):
         
         if self.get_flag(self.flags.DEBUG_TILEMAP): self.debug_tilemap()
 
-        
         if self.get_flag(self.flags.Y_SORT):
             self.blitv.sort(key=lambda blit: blit.pop(0))
         else:
@@ -102,14 +118,14 @@ class BOXrenderer(BOXatom):
         for _ in range(self.blits):
             surf, rect, pos, offset = self.blitv.pop(0)
             if offset is None:
-                self.window.blits(surf, pos, rect=rect)
+                self.window.blits(surf, pos)
             else:
                 self.window.blits(surf, add_v2(pos, offset))
-
             if self.get_flag(self.flags.DEBUG_OBJECT): self.debug_object(rect)
+            del rect, surf, pos, offset
         self.blits = 0
 
-        self.particles.render(self.particles_001)
+        self.particles.render(self.window)
 
         if self.get_flag(self.flags.DEBUG_CAMERA): self.debug_camera()
 

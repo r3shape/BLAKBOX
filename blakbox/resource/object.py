@@ -26,8 +26,8 @@ class BOXobject(BOXatom):
         
         self.speed: float = 100.0
         self.rotation: float = 0.0
-        self.pos: list[float] = pos[:]
-        self.vel: list[float] = [0.0, 0.0]
+        self.pos: list[int] = pos[:]
+        self.vel: list[int] = [0, 0]
         self.bounds: list[int] = bounds[:]
         self.mvmt: list[float] = [0, 0, 0, 0]
         self.collisions: list[bool] = [0, 0, 0, 0]
@@ -40,7 +40,7 @@ class BOXobject(BOXatom):
 
     @property
     def rect(self) -> pg.Rect:
-        return pg.FRect(self.pos, self.size)
+        return pg.Rect(self.pos, self.size)
 
     @property
     def center(self) -> list[float]:
@@ -151,9 +151,9 @@ class BOXobject(BOXatom):
             self.pos[1] = max(0, min(self.bounds[1] - self.size[1], self.pos[1] + transform[1] * dt))
             self._aabby(transform, collidables)
         else:
-            self.pos[0] += transform[0] * dt
+            self.pos[0] += int(transform[0] * dt)
             self._aabbx(transform, collidables)
-            self.pos[1] += transform[1] * dt
+            self.pos[1] += int(transform[1] * dt)
             self._aabby(transform, collidables)
 
         self.vel[0] = damp_lin(self.vel[0], self.speed * 4, 5, dt)

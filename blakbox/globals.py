@@ -13,3 +13,4 @@ import pygame as pg
 from typing import Optional
 from datetime import datetime
 from sys import getsizeof as sizeof
+from typing import overload as Overload

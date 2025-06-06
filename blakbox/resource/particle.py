@@ -1,5 +1,6 @@
-from blakbox.globals import os, pg, math, random
-from blakbox.atom import BOXatom
+from ..globals import os, pg, math, random
+from ..app.window import BOXwindow
+from ..atom import BOXatom
 
 # ------------------------------------------------------------ #
 class BOXparticles(BOXatom):
@@ -65,10 +66,8 @@ class BOXparticles(BOXatom):
                 self.particles[i] = [x, y, dx, dy, lifetime, size, color]
         self.particles = [p for i, p in enumerate(self.particles) if i not in to_remove]
 
-    def render(self, render_func: callable):
-        if not callable(render_func):
-            return
+    def render(self, window: BOXwindow):
         for particle in self.particles:
             x, y, _, _, lifetime, size, color = particle
-            render_func(x, y, lifetime, size, color)
+            window.draw_circle(center=(int(x), int(y)), radius=int(size), color=color, width=1)
 # ------------------------------------------------------------ #
