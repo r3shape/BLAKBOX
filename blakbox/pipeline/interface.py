@@ -67,6 +67,7 @@ class BOXinterface(BOXatom):
             element.on_update(events)
             if point_inside(mouse_pos, [*element.absolute_pos, *element.size]):
                 if not element.get_flag(BOXelement.flags.HOVERED):
+                    BOXmouse.Hovering = BOXelement
                     element.set_flag(BOXelement.flags.HOVERED)
                     element.on_hover()
                 if mouse_down:
@@ -77,6 +78,7 @@ class BOXinterface(BOXatom):
                 return True
             else:
                 if element.get_flag(BOXelement.flags.HOVERED):
+                    BOXmouse.Hovering = None
                     element.rem_flag(BOXelement.flags.HOVERED)
                     element.on_unhover()
                 if element.get_flag(BOXelement.flags.CLICKED):

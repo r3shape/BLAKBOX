@@ -39,7 +39,7 @@ class Main(blakbox.scene.BOXscene):
             self.camera.mod_viewport(2.5)
 
         if self.app.events.mouse_pressed(blakbox.app.BOXmouse.RightClick):
-            self.o1.move_to(blakbox.app.BOXmouse.pos.world)
+            self.o1.move_to(blakbox.app.BOXmouse.pos.view)
 
         if self.app.events.key_held(blakbox.app.BOXkeyboard.W):
             self.o1.move(up=1)
@@ -59,9 +59,8 @@ class Main(blakbox.scene.BOXscene):
 
     def update(self, dt: float):
         self.o1.update(dt)
-        self.camera.follow(self.o1)
         self.cache.update_animation("logo-anim", dt)
-        self.app.window.mod_title(f"{self.app.clock.fps}")
+        self.camera.snap_mode(self.o1.pos, self.o1.size)
 
     def render(self):
         self.renderer.commit_object(self.o1, self.cache.get_animation_frame("logo-anim"))

@@ -15,8 +15,8 @@ class BOXcamera(BOXatom):
         self.bounds = window.display_size[:]
         self.viewport_size = window.display_size[:]
         self.viewport_scale = [
-            window.screen_size[0] // self.viewport_size[0],
-            window.screen_size[1] // self.viewport_size[1],
+            window.screen_size[0] / self.viewport_size[0],
+            window.screen_size[1] / self.viewport_size[1],
         ]
 
         self.speed = 100
@@ -118,8 +118,8 @@ class BOXcamera(BOXatom):
 
     def update(self, dt: float):
         self.viewport_scale = [
-            self.window.screen_size[0] // self.viewport_size[0],
-            self.window.screen_size[1] // self.viewport_size[1]
+            self.window.screen_size[0] / self.viewport_size[0],
+            self.window.screen_size[1] / self.viewport_size[1]
         ]
 
         self.pos[0] += self.vel[0] * dt

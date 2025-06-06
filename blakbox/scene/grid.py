@@ -1,6 +1,6 @@
 from ..globals import pg
 from ..log import BOXlogger
-from ..utils import div2_v2i, div_v2
+from ..utils import div2_v2i, div_v2, mul_v2
 from ..atom import BOXprivate, BOXatom
 
 from ..resource import BOXobject
@@ -15,7 +15,7 @@ class BOXgrid(BOXatom):
         self.all: list[BOXobject] = []
         self.grid_width: int = grid_size[0]                                 # in cells
         self.grid_height: int = grid_size[1]                                # in cells
-        self.grid_size: list[int] = grid_size                               # in cells
+        self.grid_size: list[int] = mul_v2(cell_size, grid_size)            # in cells
         self.grid_area: int = self.grid_width * self.grid_height            # in cells
         
         self.cell_width: int = cell_size[0]                             # in pixels

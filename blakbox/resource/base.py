@@ -116,6 +116,14 @@ class BOXcache(BOXatom):
             return
         return data[0][data[1][0]]
     
+    def reset_animation(self, key: str) -> None:
+        data = self.get_animation(key)
+        if not data:
+            BOXlogger.info(f"[BOXcache] Animation not found: '{key}'")
+            return
+        data[1][1] = 0
+        data[1][0] = 0
+
     def update_animation(self, key: str, dt: float) -> None:
         data = self.get_animation(key)
         if not data:

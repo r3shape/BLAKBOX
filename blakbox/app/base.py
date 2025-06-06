@@ -1,4 +1,4 @@
-from ..utils import add_v2, mul_v2, div2_v2
+from ..utils import add_v2, mul_v2, div2_v2, div2_v2i
 from ..globals import pg
 from ..atom import BOXprivate, BOXatom
 from ..log import BOXlogger
@@ -82,9 +82,8 @@ class BOXapp(BOXatom):
 
                 self.scene.camera.update(self.clock.dt)
                 
-                BOXmouse.pos.view = add_v2([BOXmouse.pos.screen[0] // self.scene.camera.viewport_scale[0],
-                                            BOXmouse.pos.screen[1] // self.scene.camera.viewport_scale[1]], self.scene.camera.pos)
-                BOXmouse.pos.world = mul_v2(div2_v2(BOXmouse.pos.view, self.scene.tilemap.tile_size), self.scene.tilemap.tile_size)
+                BOXmouse.pos.view = add_v2(div2_v2(BOXmouse.pos.screen, self.scene.camera.viewport_scale), self.scene.camera.pos)
+                BOXmouse.pos.world = mul_v2(div2_v2i(BOXmouse.pos.view, self.scene.tilemap.tile_size), self.scene.tilemap.tile_size)
                 
                 self.scene.interface.update(self.events)
                 if isinstance(self.scene.tilemap, BOXtilemap):

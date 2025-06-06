@@ -143,7 +143,7 @@ class BOXmouse:
     WheelDown = 5
 
     class pos:
-        rel: list = [0, 0]
-        view: list = [0, 0]
-        world: list = [0, 0]
-        screen: list = [0, 0]
+        world: list[int] = [0, 0]
+        rel: list[float] = [0.0, 0.0]
+        view: list[float] = [0.0, 0.0]
+        screen: list[float] = [0.0, 0.0]
