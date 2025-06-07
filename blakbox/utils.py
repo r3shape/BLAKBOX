@@ -13,7 +13,7 @@ sine_wave_value = lambda A, B, t, C, D: int(A * math.sin((B * t) + C) + D)
 @param D: Vertical shift - Raises or lowers the wave.
 
 @details
-The function models a point’s vertical position as it moves in a circular or oscillatory path.
+The function models a point's vertical position as it moves in a circular or oscillatory path.
 Mathematically, it returns the y-value of a sine wave:
     y = A * sin(B * t + C) + D
 - The sine function describes smooth periodic motion.
@@ -127,6 +127,30 @@ blit_rect = lambda surface, rect, color, width: draw_rect(surface, rect.size, re
 draw_line = lambda surface, start, end, color, width: pg.draw.line(surface, color, start, end, width=width)
 draw_rect = lambda surface, size, location, color, width: pg.draw.rect(surface, color, pg.Rect(location, size), width=width)
 draw_circle = lambda surface, center, radius, color, width: pg.draw.circle(surface, color, [*map(int, center)], radius, width)
+
+def outline_surface(surface: pg.Surface, color: list[int] = [0, 0, 0], thickness: int = 1) -> pg.Surface:
+    """ draws an outline by shifting the surface mask, and filling with the passed color """
+    w, h = surface.get_size()
+    outline_surface = pg.Surface([w + thickness * 2, h + thickness * 2], pg.SRCALPHA)
+    outline_points = pg.mask.from_surface(surface).outline()
+
+    for dx in range(-thickness, thickness + 1):
+        for dy in range(-thickness, thickness + 1):
+            if dx == 0 and dy == 0: continue
+            shifted_outline_points = [[x + dx + thickness, y + dy + thickness] for x, y in outline_points]
+            pg.draw.polygon(outline_surface, color, shifted_outline_points, width=0)
+
+    outline_surface.blit(surface, [thickness, thickness])
+    return outline_surface
+
+def palette_swap(surface: pg.Surface, swap_map: list[list[int]]) -> pg.Surface:
+    result = surface.copy()
+    pixels = pg.PixelArray(result)
+    for src_color, swap_color in swap_map:
+        print(src_color, swap_color)
+        pixels.replace(surface.map_rgb(src_color), surface.map_rgb(swap_color))
+    del pixels
+    return result
 
 def load_surface(path: str, scale: list[int] = None, color_key: list[int] = None) -> pg.Surface:
     surface = pg.image.load(path).convert_alpha()
