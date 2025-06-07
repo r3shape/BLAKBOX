@@ -12,6 +12,7 @@ class BOXevents(BOXatom):
 
         self.mouse = {}
         self.mouse_old = {}
+        self.wheel: list[int] = [0, 0]
         self.mouse_wheel_up: bool=False
         self.mouse_wheel_down: bool=False
 
@@ -28,6 +29,7 @@ class BOXevents(BOXatom):
         return self.mouse.get(button, False) and not self.mouse_old.get(button, False)
 
     def update(self) -> None:
+        self.wheel = [0, 0]
         self.mouse_wheel_up = False
         self.mouse_wheel_down = False
         self.mouse_old = self.mouse.copy()
@@ -43,6 +45,8 @@ class BOXevents(BOXatom):
                     self.keyboard[event.key] = True
                 case pg.MOUSEBUTTONUP:
                     self.mouse[event.button] = False
+                case pg.MOUSEWHEEL:
+                    self.wheel = [event.x, event.y]
                 case pg.MOUSEBUTTONDOWN:
                     self.mouse[event.button] = True
                     if event.button == 4:

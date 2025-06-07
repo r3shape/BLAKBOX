@@ -1,7 +1,6 @@
-from blakbox.atom import BOXatom
-from blakbox.globals import pg, math
-from blakbox.utils import add_v2, sub_v2, div_v2, mul_v2, damp_lin, norm_v2
-
+from ...utils import add_v2, sub_v2, div_v2, mul_v2, damp_lin, norm_v2
+from ...globals import pg, math
+from ...atom import BOXatom
 
 # ------------------------------------------------------------ #
 class BOXobject(BOXatom):

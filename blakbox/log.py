@@ -11,8 +11,11 @@ class BOXlogger:
         "RESET": "\033[0m"      # Reset
     }
 
+    DEBUG_MODE: bool = True
+
     @staticmethod
     def _log(message: str, level: str = "INFO", out: bool = False) -> None:
+        if not BOXlogger.DEBUG_MODE: return
         time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         fmt = f"[{time}] [{level}] {message}"
         msg = f"{BOXlogger.COLORS.get(level, '')}{fmt}{BOXlogger.COLORS['RESET']}"

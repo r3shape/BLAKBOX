@@ -1,6 +1,6 @@
-from ..globals import os, pg, math, random
-from ..app.window import BOXwindow
-from ..atom import BOXatom
+from ...globals import os, pg, math, random
+from ...app.window import BOXwindow
+from ...atom import BOXatom
 
 # ------------------------------------------------------------ #
 class BOXparticles(BOXatom):

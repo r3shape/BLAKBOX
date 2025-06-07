@@ -26,7 +26,7 @@ class BOXtilemap(BOXatom):
 
         self.tile_size: list[int] = tile_size[:]                            # in pixels
         self.grid_size: list[int] = grid_size[:]                            # in tiles
-        self.grid_size_raw: list[int] = mul_v2(grid_size, tile_size)        # in pixels
+        self.grid_size_raw: list[int] = mul_v2(grid_size, tile_size)           # in pixels
         
         self.grid_color: list[int] = grid_color[:]
 
@@ -92,7 +92,7 @@ class BOXtilemap(BOXatom):
             BOXlogger.error(f"[BOXtilemap] tile pos out of range: (pos){[gx, gy]} (grid){self.grid_size}")
             return
 
-        index = int(gy * self.tile_size[0] + gx)
+        index = int(gy * self.grid_size[0] + gx)
         if index < 0 or index >= len(self.layers[layer][1]):
             BOXlogger.error(f"[BOXtilemap] failed to set tile: (layer){layer} (tile){tile} (tileset){tileset} (pos){[gx, gy]}")
             BOXlogger.error(f"[BOXtilemap] data index out of range: (index){index} (len){len(self.layers[layer][1])}")
@@ -126,7 +126,7 @@ class BOXtilemap(BOXatom):
             BOXlogger.error(f"[BOXtilemap] failed to get tile: (layer){layer} (pos){[gx, gy]}")
             return
 
-        index = int(gy * self.tile_size[0] + gx)
+        index = int(gy * self.grid_size[0] + gx)
         if index < 0 or index >= len(self.layers[layer][1]):
             BOXlogger.error(f"[BOXtilemap] failed to get tile: (layer){layer} (pos){[gx, gy]}")
             BOXlogger.error(f"[BOXtilemap] data index out of range: (index){index} (len){len(self.layers[layer][1])}")
@@ -144,7 +144,7 @@ class BOXtilemap(BOXatom):
             BOXlogger.error(f"[BOXtilemap] failed to rem tile: (layer){layer} (pos){[gx, gy]}")
             return
 
-        index = int(gy * self.tile_size[0] + gx)
+        index = int(gy * self.grid_size[0] + gx)
         if index < 0 or index >= len(self.layers[layer][1]):
             BOXlogger.error(f"[BOXtilemap] failed to rem tile: (layer){layer} (pos){[gx, gy]}")
             BOXlogger.error(f"[BOXtilemap] data index out of range: (index){index} (len){len(self.layers[layer][1])}")
@@ -170,7 +170,7 @@ class BOXtilemap(BOXatom):
         
         tiles = []
         for gx, gy in region:
-            index = int(gy * self.tile_size[0] + gx)
+            index = int(gy * self.grid_size[0] + gx)
             if index < 0 or index >= len(self.layers[layer][1]):
                 BOXlogger.error(f"[BOXtilemap] data index out of range: (index){index} (len){len(self.layers[layer][1])}")
                 continue
@@ -185,7 +185,7 @@ class BOXtilemap(BOXatom):
         if not region: return None
         
         for gx, gy in region:
-            index = int(gy * self.tile_size[0] + gx)
+            index = int(gy * self.grid_size[0] + gx)
             if index < 0 or index >= len(self.layers[layer][1]):
                 BOXlogger.error(f"[BOXtilemap] data index out of range: (index){index} (len){len(self.layers[layer][1])}")
                 continue
@@ -272,7 +272,7 @@ class BOXtilemap(BOXatom):
             for tile in self.layers[layer][1]:
                 if tile is None: continue
                 gx, gy = div2_v2i(tile.pos, self.tile_size)
-                index = int(gy * self.tile_size[0] + gx)
+                index = int(gy * self.grid_size[0] + gx)
                 if index < 0 or index >= len(self.layers[layer][1]):
                     BOXlogger.error(f"[BOXtilemap] data index out of range: (index){index} (len){len(self.layers[layer][1])}")
                     continue
@@ -297,7 +297,7 @@ class BOXtilemap(BOXatom):
         gx, gy = div2_v2i(pos, self.tile_size)
         if gx < 0 or gy < 0 or gx >= self.grid_size[0] or gy >= self.grid_size[1]: return
 
-        index = int(gy * self.tile_size[0] + gx)
+        index = int(gy * self.grid_size[0] + gx)
         if index < 0 or index >= len(self.layers[layer][1]):
             BOXlogger.error(f"[BOXtilemap] data index out of range: (index){index} (len){len(self.layers[layer][1])}")
             return
@@ -311,7 +311,7 @@ class BOXtilemap(BOXatom):
         gx, gy = div2_v2i(pos, self.tile_size)
         if gx < 0 or gy < 0 or gx >= self.grid_size[0] or gy >= self.grid_size[1]: return
 
-        index = int(gy * self.tile_size[0] + gx)
+        index = int(gy * self.grid_size[0] + gx)
         if index < 0 or index >= len(self.layers[layer][1]):
             BOXlogger.error(f"[BOXtilemap] data index out of range: (index){index} (len){len(self.layers[layer][1])}")
             return
@@ -324,7 +324,7 @@ class BOXtilemap(BOXatom):
         gx, gy = div2_v2i(pos, self.tile_size)
         if gx < 0 or gy < 0 or gx >= self.grid_size[0] or gy >= self.grid_size[1]: return
 
-        index = int(gy * self.tile_size[0] + gx)
+        index = int(gy * self.grid_size[0] + gx)
         if index < 0 or index >= len(self.layers[layer][1]):
             BOXlogger.error(f"[BOXtilemap] data index out of range: (index){index} (len){len(self.layers[layer][1])}")
             return
@@ -339,7 +339,7 @@ class BOXtilemap(BOXatom):
         if not region: return None
         
         for gx, gy in region:
-            index = int(gy * self.tile_size[0] + gx)
+            index = int(gy * self.grid_size[0] + gx)
             if index < 0 or index >= len(self.layers[layer][1]):
                 BOXlogger.error(f"[BOXtilemap] data index out of range: (index){index} (len){len(self.layers[layer][1])}")
                 continue
@@ -353,7 +353,7 @@ class BOXtilemap(BOXatom):
         
         datas = []
         for gx, gy in region:
-            index = int(gy * self.tile_size[0] + gx)
+            index = int(gy * self.grid_size[0] + gx)
             if index < 0 or index >= len(self.layers[layer][1]):
                 BOXlogger.error(f"[BOXtilemap] data index out of range: (index){index} (len){len(self.layers[layer][1])}")
                 continue
@@ -368,7 +368,7 @@ class BOXtilemap(BOXatom):
         if not region: return None
         
         for gx, gy in region:
-            index = int(gy * self.tile_size[0] + gx)
+            index = int(gy * self.grid_size[0] + gx)
             if index < 0 or index >= len(self.layers[layer][1]):
                 BOXlogger.error(f"[BOXtilemap] data index out of range: (index){index} (len){len(self.layers[layer][1])}")
                 continue

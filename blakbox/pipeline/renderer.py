@@ -3,8 +3,8 @@ from ..atom import BOXatom
 from ..utils import add_v2
 from ..app.window import BOXwindow
 from ..pipeline.camera import BOXcamera
-from ..resource.object import BOXobject
-from ..resource.particle import BOXparticles
+from ..resource.game.object import BOXobject
+from ..resource.game.particle import BOXparticles
 
 # ------------------------------------------------------------ #
 class BOXrenderer(BOXatom):
