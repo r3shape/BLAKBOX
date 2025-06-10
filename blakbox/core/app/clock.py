@@ -12,7 +12,6 @@ class BOXclock(BOXatom):
         self.last: float = time.time()
         self.start: float = time.time()
 
-    @property
     def tick(self) -> int:
         return self.internal.tick(self.fpst)
 
