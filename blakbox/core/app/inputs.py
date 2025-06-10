@@ -1,5 +1,5 @@
-from ..globals import pg
-from ..atom import BOXprivate, BOXatom
+from ...globals import pg
+from ...atom import BOXprivate, BOXatom
 
 class BOXkeyboard:
     # Letter keys

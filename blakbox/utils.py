@@ -1,5 +1,20 @@
-from .globals import pg, re, os, math
+from .log import BOXlogger
+from .globals import pg, re, os, math, time, functools
 
+""" DECORATORS """
+
+def BOXprofile(func):
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs):
+        start = time.perf_counter()
+        result = func(*args, **kwargs)
+        end = time.perf_counter()
+        elapsed_ms = (end - start) * 1000
+        BOXlogger.debug(f"[BOXprofile] {func.__qualname__} took {elapsed_ms:.3f} ms")
+        return result
+    return wrapper
+
+""" LAMBDAS """
 lerp = lambda a, b, t: a + (b - a) * t
 """ Simple Linear Interpolation"""
 
@@ -13,7 +28,7 @@ sine_wave_value = lambda A, B, t, C, D: int(A * math.sin((B * t) + C) + D)
 @param D: Vertical shift - Raises or lowers the wave.
 
 @details
-The function models a point's vertical position as it moves in a circular or oscillatory path.
+The function models a point’s vertical position as it moves in a circular or oscillatory path.
 Mathematically, it returns the y-value of a sine wave:
     y = A * sin(B * t + C) + D
 - The sine function describes smooth periodic motion.
@@ -82,7 +97,10 @@ scale_v3 = lambda v, s: [v[0] * s, v[1] * s, v[2] * s]
 scale_v3i = lambda v, s: [int(v[0] * s), int(v[1] * s), int(v[2] * s)]
 
 mag_v2 = lambda v: (v[0]**2 + v[1]**2) ** 0.5
+
 mul_v2 = lambda v, s: [v[0] * s[0], v[1] * s[1]]
+mul_v2i = lambda v, s: [int(v[0] * s[0]), int(v[1] * s[1])]
+
 add_v2 = lambda a, b: [a[0] + b[0], a[1] + b[1]]
 sub_v2 = lambda a, b: [a[0] - b[0], a[1] - b[1]]
 clamp = lambda v, l, u: l if v < l else u if v > u else v

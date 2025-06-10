@@ -1,7 +1,7 @@
-from ..utils import add_v2, mul_v2, div2_v2, div2_v2i
-from ..globals import pg
-from ..atom import BOXprivate, BOXatom
-from ..log import BOXlogger
+from ...utils import add_v2, mul_v2, div2_v2, div2_v2i
+from ...globals import pg
+from ...atom import BOXprivate, BOXatom
+from ...log import BOXlogger
 from .clock import BOXclock
 from .window import BOXwindow
 from .events import BOXevents

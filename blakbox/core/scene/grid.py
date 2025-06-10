@@ -1,7 +1,7 @@
-from ..globals import pg
-from ..log import BOXlogger
-from ..utils import div2_v2i, div_v2, mul_v2
-from ..atom import BOXprivate, BOXatom
+from ...globals import pg
+from ...log import BOXlogger
+from ...utils import div2_v2i, div_v2, mul_v2
+from ...atom import BOXprivate, BOXatom
 
 from ..resource import BOXobject
 
@@ -101,6 +101,7 @@ class BOXgrid(BOXatom):
             if index < 0 or index >= self.grid_area: continue
             self.grid[index] = []
 
+    @BOXprivate
     def update(self) -> None:
         for object in self.all:
             object.grid_cell = self.to_grid_pos(object.pos)

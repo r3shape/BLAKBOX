@@ -1,10 +1,10 @@
-from ...globals import pg, Optional
-from ...log import BOXlogger
+from ....globals import pg, Optional
+from ....log import BOXlogger
 from ...app.inputs import BOXmouse
 from ...app.events import BOXevents
 from ...app.window import BOXwindow
-from ...atom import BOXprivate, BOXatom
-from ...utils import add_v2, sub_v2, div_v2, point_inside
+from ....atom import BOXprivate, BOXatom
+from ....utils import add_v2, sub_v2, div_v2, point_inside
 
 class BOXelement(BOXatom):
     class flags:
@@ -38,6 +38,7 @@ class BOXelement(BOXatom):
             border_width: int = 1,
             border_color: list[int] = [0, 0, 0],
             border_radius: list[int] = [0, 0, 0, 0],
+            flags: int = 0,
     ) -> None:
         super().__init__()
         self.size: list[int] = size[:]
@@ -54,6 +55,7 @@ class BOXelement(BOXatom):
         self.surface: pg.Surface = pg.Surface(size, pg.SRCALPHA)
         self.surface.fill(color)
 
+        self.set_flag(flags)
         self.set_flag(BOXelement.flags.VISIBLE)
         self.set_flag(BOXelement.flags.ANTI_ALIAS)
         self.set_flag(BOXelement.flags.SHOW_BORDER)

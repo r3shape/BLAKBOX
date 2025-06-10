@@ -1,6 +1,6 @@
-from ..globals import pg
-from ..log import BOXlogger
-from ..atom import BOXprivate, BOXatom
+from ...globals import pg
+from ...log import BOXlogger
+from ...atom import BOXprivate, BOXatom
 
 class BOXcache(BOXatom):
     def __init__(self):

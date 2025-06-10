@@ -1,6 +1,6 @@
-from ..globals import pg, Overload
-from ..atom import BOXatom
-from ..utils import add_v2
+from ...globals import pg, Overload
+from ...atom import BOXatom, BOXprivate
+from ...utils import add_v2
 from ..app.window import BOXwindow
 from ..pipeline.camera import BOXcamera
 from ..resource.game.object import BOXobject
@@ -30,7 +30,6 @@ class BOXrenderer(BOXatom):
 
         self.debug_object_color: list[int] = [0, 255, 0]
         self.debug_camera_color: list[int] = [255, 0, 0]
-        self.debug_tilemap_color: list[int] = [50, 50, 50]
 
     """ RENDER CALL"""
     def commit_objectv(self, objects: list[BOXobject]) -> None:
@@ -97,13 +96,14 @@ class BOXrenderer(BOXatom):
         
         for gx in range(int(start[0]), int(end[0])):
             x = gx * tile_size[0]
-            pg.draw.line(self.window.display, self.debug_tilemap_color, [x, start[1] * tile_size[1]], [x, end[1] * tile_size[1]], 1)
+            pg.draw.line(self.window.display, self.scene.tilemap.grid_color, [x, start[1] * tile_size[1]], [x, end[1] * tile_size[1]], 1)
         
         for gy in range(int(start[1]), int(end[1])):
             y = gy * tile_size[1]
-            pg.draw.line(self.window.display, self.debug_tilemap_color, [start[0] * tile_size[0], y], [end[0] * tile_size[0], y], 1)
+            pg.draw.line(self.window.display, self.scene.tilemap.grid_color, [start[0] * tile_size[0], y], [end[0] * tile_size[0], y], 1)
 
     """ RENDERING """
+    @BOXprivate
     def flush(self) -> None:
         self.target = pg.Surface(self.camera.viewport_size)
         self.target.fill(self.window.clear_color)

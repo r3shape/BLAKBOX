@@ -1,7 +1,7 @@
-from ...log import BOXlogger
-from ...atom import BOXprivate
+from ....log import BOXlogger
+from ....atom import BOXprivate
 from ...app.inputs import BOXmouse
-from ...utils import add_v2, scale_v2, equal_arrays, point_inside
+from ....utils import add_v2, scale_v2, equal_arrays, point_inside
 
 from .container import BOXelement, BOXcontainer
 
@@ -9,12 +9,15 @@ class BOXscrollview(BOXcontainer):
     def __init__(
             self,
             speed: int = 1,
+            flags: int = 0,
             **kwargs
     ) -> None:
         super().__init__(**kwargs)
 
         self.speed: int = speed
         self.scroll: list[int] = [0, 0]
+
+        self.set_flag(flags)
     
     @property
     def scroll_bounds(self) -> list[int]:

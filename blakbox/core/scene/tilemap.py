@@ -1,7 +1,7 @@
-from ..log import BOXlogger
-from ..atom import BOXprivate, BOXatom
-from ..globals import os, pg, json, random
-from ..utils import div2_v2i, mul_v2, rel_path, load_surface_array
+from ...log import BOXlogger
+from ...atom import BOXprivate, BOXatom
+from ...globals import os, pg, json, random
+from ...utils import div2_v2i, mul_v2, rel_path, load_surface_array
 
 from .grid import BOXgrid
 from ..resource import BOXobject
@@ -44,8 +44,8 @@ class BOXtilemap(BOXatom):
         # self.layers[layer][1] = tile object layer
         self.layers: dict[str, list] = {
             "bg": [[None for _ in range(grid_size[0] * grid_size[1])] for _ in range(2)],
-            "fg": [[None for _ in range(grid_size[0] * grid_size[1])] for _ in range(2)],
-            "mg":  [[None for _ in range(grid_size[0] * grid_size[1])] for _ in range(2)]
+            "mg":  [[None for _ in range(grid_size[0] * grid_size[1])] for _ in range(2)],
+            "fg": [[None for _ in range(grid_size[0] * grid_size[1])] for _ in range(2)]
         }
 
     @BOXprivate    
@@ -71,6 +71,25 @@ class BOXtilemap(BOXatom):
                 region.append([x, y])
         return region
 
+    def clear(self) -> None:
+        del self.tilesets
+        del self.layers["bg"]
+        del self.layers["mg"]
+        del self.layers["fg"]
+        
+        self.tilesets = []
+        self.layers = {
+            "bg": [[None for _ in range(self.grid_size[0] * self.grid_size[1])] for _ in range(2)],
+            "mg":  [[None for _ in range(self.grid_size[0] * self.grid_size[1])] for _ in range(2)],
+            "fg": [[None for _ in range(self.grid_size[0] * self.grid_size[1])] for _ in range(2)]
+        }
+
+    def reconfigure(self,scene,
+            tile_size: list[int],
+            grid_size: list[int],
+            grid_color: list[int] = [50, 50, 50]) -> None:
+        self.clear()
+        self._config(scene, tile_size, grid_size, grid_color)
 
     """ TILE OBJECT """
     def all_tiles(self, layer:str) -> list[BOXobject]:
@@ -102,6 +121,7 @@ class BOXtilemap(BOXatom):
             BOXlogger.warning(f"[BOXtilemap] tile present: (layer){layer} (pos){[gx, gy]}")
             return
         
+
         tile_object = BOXobject(
             size=self.tile_size,
             pos=mul_v2(div2_v2i(pos, self.tile_size), self.tile_size),

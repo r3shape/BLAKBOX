@@ -1,10 +1,11 @@
 from .atom import BOXatom
 from .log import BOXlogger
-import blakbox.app as app
 import blakbox.utils as utils
-import blakbox.scene as scene
-import blakbox.pipeline as pipeline
-import blakbox.resource as resource
+
+import blakbox.core.app as app
+import blakbox.core.scene as scene
+import blakbox.core.pipeline as pipeline
+import blakbox.core.resource as resource
 
 from .globals import os, random
 import blakbox.quotes as quotes

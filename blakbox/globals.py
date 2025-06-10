@@ -6,6 +6,7 @@ import json
 import math
 import random
 import inspect
+import functools
 
 os.environ["PYGAME_HIDE_SUPPORT_PROMPT"] = str(True)
 import pygame as pg

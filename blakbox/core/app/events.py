@@ -1,5 +1,5 @@
-from ..globals import pg
-from ..atom import BOXprivate, BOXatom
+from ...globals import pg
+from ...atom import BOXprivate, BOXatom
 
 class BOXevents(BOXatom):
     def __init__(self) -> None:
@@ -28,6 +28,7 @@ class BOXevents(BOXatom):
     def mouse_pressed(self, button):
         return self.mouse.get(button, False) and not self.mouse_old.get(button, False)
 
+    @BOXprivate
     def update(self) -> None:
         self.wheel = [0, 0]
         self.mouse_wheel_up = False

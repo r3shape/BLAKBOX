@@ -1,6 +1,6 @@
-from ...log import BOXlogger
-from ...atom import BOXprivate
-from ...utils import add_v2, sub_v2
+from ....log import BOXlogger
+from ....atom import BOXprivate
+from ....utils import add_v2, sub_v2
 
 from .element import BOXelement
 
@@ -23,6 +23,7 @@ class BOXcontainer(BOXelement):
             wrap_y: int = 1,
             margin: list[int] = [0, 0],
             padding: list[int] = [0, 0],
+            flags: int = 0,
             **kwargs
     ) -> None:
         super().__init__(**kwargs)
@@ -34,6 +35,7 @@ class BOXcontainer(BOXelement):
         self.margin: list[int] = [0, 0]
         self.padding: list[int] = [0, 0]
 
+        self.set_flag(flags)
         self.set_flag(self.flags.DISPLAY_ROW)
     
     @BOXprivate

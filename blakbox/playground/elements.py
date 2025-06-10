@@ -3,7 +3,7 @@ import blakbox
 
 class PlayButton(blakbox.resource.BOXlabel):
     def __init__(self, app: blakbox.app.BOXapp, font: pg.Font) -> None:
-        super().__init__(font=font, text="Play", size=[164, 64], text_pos=[56, 40])
+        super().__init__(font=font, text="Play", size=[164, 64], text_pos=[56, 40], flags=blakbox.resource.BOXelement.flags.SHOW_TEXT)
         self.app: blakbox.app.BOXapp = app
         self.pos = [self.app.window.screen_size[0] / 2 - self.size[0] / 2,
                     self.app.window.screen_size[1] / 2 - self.size[1] / 2, ]
@@ -27,7 +27,7 @@ class PlayButton(blakbox.resource.BOXlabel):
 
 class MenuButton(blakbox.resource.BOXlabel):
     def __init__(self, app: blakbox.app.BOXapp, font: pg.Font) -> None:
-        super().__init__(font=font, text="Menu", text_pos=[0, 0])
+        super().__init__(font=font, text="Menu", text_pos=[0, 0], flags=blakbox.resource.BOXelement.flags.SHOW_TEXT)
         self.app: blakbox.app.BOXapp = app
        
         self.border_width = 2

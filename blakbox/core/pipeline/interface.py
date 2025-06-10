@@ -1,8 +1,8 @@
-from ..globals import pg
-from ..atom import BOXatom
-from ..utils import point_inside
+from ...globals import pg
+from ...atom import BOXatom, BOXprivate
+from ...utils import point_inside
 
-from ..log import BOXlogger
+from ...log import BOXlogger
 from ..app.inputs import BOXmouse
 from ..app.window import BOXwindow
 from ..app.events import BOXevents
@@ -35,6 +35,7 @@ class BOXinterface(BOXatom):
         self.elements.clear()
         BOXlogger.info("[BOXinterface] Cleared all elements")
 
+    @BOXprivate
     def update(self, events: BOXevents) -> bool:
         def handle_element(element: BOXelement) -> bool:
             if not element.get_flag(BOXelement.flags.VISIBLE):
@@ -42,15 +43,11 @@ class BOXinterface(BOXatom):
 
             if element.get_flag(BOXelement.flags.SHOW_ELEMENTS):
                 for child in reversed(list(element.children.values())):
-                    if handle_element(child):
-                        return True
+                    handle_element(child)
 
             element.on_update(events)
             if point_inside(BOXmouse.pos.screen, [*element.absolute_pos, *element.size]):
-                if isinstance(element, BOXcontainer):
-                    BOXmouse.Hovering = BOXcontainer
-                else:
-                    BOXmouse.Hovering = BOXelement
+                BOXmouse.Hovering = element
                 if not element.get_flag(BOXelement.flags.HOVERED):
                     element.set_flag(BOXelement.flags.HOVERED)
                     element.on_hover()
@@ -76,6 +73,7 @@ class BOXinterface(BOXatom):
                 return True
         return False
     
+    @BOXprivate
     def render(self) -> None:
         for element in self.elements.values():
             if isinstance(element, BOXcontainer):

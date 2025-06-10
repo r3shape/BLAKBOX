@@ -1,5 +1,5 @@
-from ..globals import pg, time
-from ..atom import BOXatom
+from ...globals import pg, time
+from ...atom import BOXatom, BOXprivate
 
 class BOXclock(BOXatom):
     def __init__(self, target: float = 60.0) -> None:
@@ -12,9 +12,11 @@ class BOXclock(BOXatom):
         self.last: float = time.time()
         self.start: float = time.time()
 
+    @property
     def tick(self) -> int:
         return self.internal.tick(self.fpst)
 
+    @BOXprivate
     def update(self) -> None:
         self.dt, self.last = time.time() - self.now, self.now
         self.fps = self.internal.get_fps()

@@ -1,8 +1,8 @@
-from ..globals import pg, random
-from ..atom import BOXatom
+from ...globals import pg, random
+from ...atom import BOXatom, BOXprivate
 from ..app.window import BOXwindow
 from ..resource import BOXobject
-from ..utils import add_v2, sub_v2, div_v2, scale_v2, scale_v2i
+from ...utils import add_v2, sub_v2, div_v2, scale_v2, scale_v2i
 
 # ------------------------------------------------------------ #
 class BOXcamera(BOXatom):
@@ -116,6 +116,7 @@ class BOXcamera(BOXatom):
             self.vel[0] += dx * (self.speed * 0.001)
             self.vel[1] += dy * (self.speed * 0.001)
 
+    @BOXprivate
     def update(self, dt: float):
         self.viewport_scale = [
             self.window.screen_size[0] / self.viewport_size[0],

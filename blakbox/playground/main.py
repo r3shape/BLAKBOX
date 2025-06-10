@@ -1,5 +1,5 @@
 import blakbox
-import blakbox.playground.scenes as scenes
+import scenes as scenes
 
 class Playground(blakbox.app.BOXapp):
     def __init__(self) -> None:
@@ -20,5 +20,4 @@ class Playground(blakbox.app.BOXapp):
 
     def exit(self) -> None: pass
 
-def main() -> None:
-    Playground().run()
+Playground().run()

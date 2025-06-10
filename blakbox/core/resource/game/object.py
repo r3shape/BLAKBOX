@@ -1,6 +1,6 @@
-from ...utils import add_v2, sub_v2, div_v2, mul_v2, damp_lin, norm_v2
-from ...globals import pg, math
-from ...atom import BOXatom
+from ....utils import add_v2, sub_v2, div_v2, mul_v2, damp_lin, norm_v2
+from ....globals import pg, math
+from ....atom import BOXatom
 
 # ------------------------------------------------------------ #
 class BOXobject(BOXatom):
@@ -15,6 +15,7 @@ class BOXobject(BOXatom):
             pos: list[float] = [0, 0],
             bounds: list[int] = [0, 0],
             color: list[int] = [0, 0, 0],
+            flags: int = 0,
             ):
         super().__init__()
         self.tag: str = tag
@@ -36,6 +37,8 @@ class BOXobject(BOXatom):
         
         self.grid_cell: list[int] = [0, 0]  # cell occupied in BOXobjectgrid
         self.last_grid_cell: list[int] = [0, 0] # last cell occupied in BOXobjectgrid
+
+        self.set_flag(flags)
 
     @property
     def rect(self) -> pg.Rect:

@@ -1,6 +1,6 @@
-from ..globals import pg
-from ..atom import BOXatom
-from ..utils import add_v2, sub_v2, div_v2, box_path
+from ...globals import pg
+from ...atom import BOXatom, BOXprivate
+from ...utils import add_v2, sub_v2, div_v2, box_path
 
 # ------------------------------------------------------------ #
 class BOXwindow(BOXatom):
@@ -113,6 +113,7 @@ class BOXwindow(BOXatom):
         if self._blit_clip(rect.topleft, rect.size, offset): return
         self.draw_rect(rect.topleft, rect.size, offset, color, width)
 
+    @BOXprivate
     def update(self) -> None:
         pg.display.flip()
 # ------------------------------------------------------------ #
