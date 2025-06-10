@@ -54,17 +54,15 @@ class MyGame(blakbox.app.BOXapplication):
             display_size = [1600, 1200] # the surface "within" the window 
         )
 
-    def configure(self): pass
-    def cleanup(self): pass
-    def handle_events(self): pass
-    def handle_update(self): pass
+    def init(self): pass
+    def exit(self): pass
 
 if __name__ == "__main__":
     MyGame().run()
 ```
-| NOTE: The methods `configure()`, `cleanup()`, `handle_events()` and `handle_update()` must be defined for any instance of `BOXapplication`.
+| NOTE: The methods `init()`, and `exit()` must be defined for any instance of `BOXapp`.
 
-Above is the minimal code needed to get `BOXapplication` up and running. From here you can explore the `BOXscene` and the other classes provided in `blakbox.app.resource` and `blakbox.app.ui`.
+Above is the minimal code needed to get `BOXapp` up and running. From here you can explore the `BOXscene` and the other classes provided in `blakbox.core.resource`, `blakbox.core.scene`, and `blakbox.core.pipeline`.
 
 Check out the `blakbox/examples` directory to get a look at some "real world" use cases for the library, maybe even kickstart your next project.
 
