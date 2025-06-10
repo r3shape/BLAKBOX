@@ -46,12 +46,13 @@ After youv'e installed `blakbox` go ahead and create a script named `main.py` so
 ```python
 import blakbox
 
-class MyGame(blakbox.app.BOXapplication):
+class MyGame(blakbox.app.BOXapp):
     def __init__(self) -> None:
         super().__init__(
-            name = "My Game",           # initial window title
-            window_size = [800, 600],   # the window itself
-            display_size = [1600, 1200] # the surface "within" the window 
+            name = "My Game",            # initial window title
+            screen_size = [800, 600],    # the window itself
+            display_size = [1600, 1200], # the surface "within" the window
+            clear_color = [50, 50, 50]
         )
 
     def init(self): pass
