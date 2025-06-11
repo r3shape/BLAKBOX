@@ -1,16 +1,16 @@
 from .globals import inspect
-from .log import BOXlogger
+from .log import NBOXlogger
 
-def BOXprivate(func):
+def NBOXprivate(func):
     def wrapper(*args, **kwargs):
         caller = inspect.stack()[1].frame.f_globals.get("__name__")
-        if not caller.startswith("blakbox."):
-            BOXlogger.warning(f"Internal Method, cannot call `{func.__name__}`.")
+        if not caller.startswith("netbox."):
+            NBOXlogger.warning(f"Internal Method, cannot call `{func.__name__}`.")
             return
         return func(*args, **kwargs)
     return wrapper
 
-class BOXatom:
+class NBOXatom:
     def __init__(self) -> None:
         self._mask: int = 0
         self._type: int = 0

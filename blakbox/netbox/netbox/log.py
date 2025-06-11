@@ -1,8 +1,8 @@
-from .utils import box_path
+
 from .globals import os, datetime
 
 # ------------------------------------------------------------ #
-class BOXlogger:
+class NBOXlogger:
     COLORS = {
         "INFO": "\033[92m",     # Green
         "ERROR": "\033[91m",    # Red
@@ -15,21 +15,21 @@ class BOXlogger:
 
     @staticmethod
     def _log(message: str, level: str = "INFO", out: bool = False) -> None:
-        if not BOXlogger.DEBUG_MODE: return
+        if not NBOXlogger.DEBUG_MODE: return
         time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         fmt = f"[{time}] [{level}] {message}"
-        msg = f"{BOXlogger.COLORS.get(level, '')}{fmt}{BOXlogger.COLORS['RESET']}"
+        msg = f"{NBOXlogger.COLORS.get(level, '')}{fmt}{BOXlogger.COLORS['RESET']}"
         print(msg)
 
     @staticmethod
-    def info(message, out: bool = False) -> None: BOXlogger._log(message, "INFO", out)
+    def info(message, out: bool = False) -> None: NBOXlogger._log(message, "INFO", out)
 
     @staticmethod
-    def error(message, out: bool = False) -> None: BOXlogger._log(message, "ERROR", out)
+    def error(message, out: bool = False) -> None: NBOXlogger._log(message, "ERROR", out)
 
     @staticmethod
-    def debug(message, out: bool = False) -> None: BOXlogger._log(message, "DEBUG", out)
+    def debug(message, out: bool = False) -> None: NBOXlogger._log(message, "DEBUG", out)
 
     @staticmethod
-    def warning(message, out: bool = False) -> None: BOXlogger._log(message, "WARNING", out)
+    def warning(message, out: bool = False) -> None: NBOXlogger._log(message, "WARNING", out)
 # ------------------------------------------------------------ #

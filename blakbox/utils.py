@@ -1,20 +1,5 @@
-from .log import BOXlogger
-from .globals import pg, re, os, math, time, functools
+from .globals import pg, re, os, math
 
-""" DECORATORS """
-
-def BOXprofile(func):
-    @functools.wraps(func)
-    def wrapper(*args, **kwargs):
-        start = time.perf_counter()
-        result = func(*args, **kwargs)
-        end = time.perf_counter()
-        elapsed_ms = (end - start) * 1000
-        BOXlogger.debug(f"[BOXprofile] {func.__qualname__} took {elapsed_ms:.3f} ms")
-        return result
-    return wrapper
-
-""" LAMBDAS """
 lerp = lambda a, b, t: a + (b - a) * t
 """ Simple Linear Interpolation"""
 
@@ -97,10 +82,7 @@ scale_v3 = lambda v, s: [v[0] * s, v[1] * s, v[2] * s]
 scale_v3i = lambda v, s: [int(v[0] * s), int(v[1] * s), int(v[2] * s)]
 
 mag_v2 = lambda v: (v[0]**2 + v[1]**2) ** 0.5
-
 mul_v2 = lambda v, s: [v[0] * s[0], v[1] * s[1]]
-mul_v2i = lambda v, s: [int(v[0] * s[0]), int(v[1] * s[1])]
-
 add_v2 = lambda a, b: [a[0] + b[0], a[1] + b[1]]
 sub_v2 = lambda a, b: [a[0] - b[0], a[1] - b[1]]
 clamp = lambda v, l, u: l if v < l else u if v > u else v
@@ -145,30 +127,6 @@ blit_rect = lambda surface, rect, color, width: draw_rect(surface, rect.size, re
 draw_line = lambda surface, start, end, color, width: pg.draw.line(surface, color, start, end, width=width)
 draw_rect = lambda surface, size, location, color, width: pg.draw.rect(surface, color, pg.Rect(location, size), width=width)
 draw_circle = lambda surface, center, radius, color, width: pg.draw.circle(surface, color, [*map(int, center)], radius, width)
-
-def outline_surface(surface: pg.Surface, color: list[int] = [0, 0, 0], thickness: int = 1) -> pg.Surface:
-    """ draws an outline by shifting the surface mask, and filling with the passed color """
-    w, h = surface.get_size()
-    outline_surface = pg.Surface([w + thickness * 2, h + thickness * 2], pg.SRCALPHA)
-    outline_points = pg.mask.from_surface(surface).outline()
-
-    for dx in range(-thickness, thickness + 1):
-        for dy in range(-thickness, thickness + 1):
-            if dx == 0 and dy == 0: continue
-            shifted_outline_points = [[x + dx + thickness, y + dy + thickness] for x, y in outline_points]
-            pg.draw.polygon(outline_surface, color, shifted_outline_points, width=0)
-
-    outline_surface.blit(surface, [thickness, thickness])
-    return outline_surface
-
-def palette_swap(surface: pg.Surface, swap_map: list[list[int]]) -> pg.Surface:
-    result = surface.copy()
-    pixels = pg.PixelArray(result)
-    for src_color, swap_color in swap_map:
-        print(src_color, swap_color)
-        pixels.replace(surface.map_rgb(src_color), surface.map_rgb(swap_color))
-    del pixels
-    return result
 
 def load_surface(path: str, scale: list[int] = None, color_key: list[int] = None) -> pg.Surface:
     surface = pg.image.load(path).convert_alpha()

@@ -1,5 +1,5 @@
 import blakbox
-import elements as elements
+import blakbox.playground.elements as elements
 
 class Launcher(blakbox.scene.BOXscene):
     def __init__(self, app) -> None:

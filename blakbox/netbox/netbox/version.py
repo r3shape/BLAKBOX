@@ -1,0 +1,4 @@
+NETBOX_YEAR: int = 2025
+NETBOX_MINOR: int = 0
+NETBOX_PATCH: int = 1
+
