@@ -28,6 +28,10 @@ class BOXatom:
     def uid(self) -> int:
         return self._uid
 
+    def swap_flag(self, rem: int, set: int) -> None:
+        self.rem_flag(rem)
+        self.set_flag(set)
+
     def set_flag(self, flag: int) -> None:
         if flag < 0 or not isinstance(flag, int): return
         self._mask |= flag
