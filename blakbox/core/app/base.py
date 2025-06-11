@@ -83,13 +83,14 @@ class BOXapp(BOXatom):
             self.events.update()
             if isinstance(self.scene, BOXscene):
                 self.scene.events()
-                self.scene.physics.update(self.clock.dt)
-                self.scene.update(self.clock.dt)
 
+                self.scene.physics.update(self.clock.dt)
                 self.scene.camera.update(self.clock.dt)
-                
                 BOXmouse.pos.view = add_v2(div2_v2(BOXmouse.pos.screen, self.scene.camera.viewport_scale), self.scene.camera.pos)
                 BOXmouse.pos.world = mul_v2(div2_v2i(BOXmouse.pos.view, self.scene.tilemap.tile_size), self.scene.tilemap.tile_size)
+                
+                self.scene.update(self.clock.dt)
+                self.scene.world.update()
                 
                 self.scene.interface.update(self.events)
                 if isinstance(self.scene.tilemap, BOXtilemap):

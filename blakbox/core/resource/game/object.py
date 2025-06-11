@@ -8,12 +8,14 @@ class BOXobject(BOXatom):
         BOUNDED: int    = 1 << 0
         VISIBLE: int    = 1 << 1
         COLLISIONS: int = 1 << 2
-        GRAVITY: int    = 1 << 3
+        DYNAMIC: int    = 1 << 3
+        GRAVITY: int    = 1 << 4
+        DIRTY: int      = 1 << 5
 
     def __init__(
             self,
             tag: str = "BOXobject",
-            mass: float = 10.0,
+            mass: float = 50.0,
             speed: float = 100.0,
             size: list[int] = [8, 8],
             pos: list[float] = [0, 0],
@@ -31,17 +33,23 @@ class BOXobject(BOXatom):
         self.mass: float = mass
         self.speed: float = speed
         self.rotation: float = 0.0
-        self.pos: list[int] = pos[:]
+        
+        self.pos: list[int] = pos[:]                    # managed internally by BOXphysics
+        self.last_pos: list[int] = pos[:]               # managed internally by BOXphysics
+
         self.vel: list[int] = [0, 0]
         self.bounds: list[int] = bounds[:]
-        self.mvmt: list[float] = [0, 0, 0, 0]
-        self.collisions: list[bool] = [0, 0, 0, 0]
+        self.mvmt: list[float] = [0, 0, 0, 0]           # managed internally by BOXphysics
+        self.collisions: list[bool] = [0, 0, 0, 0]      # managed internally by BOXphysics
 
         self.target_gap: float = 2.0
         self.target_pos: list[float] = None
         
-        self.grid_cell: list[int] = [0, 0]  # cell occupied in BOXobjectgrid
-        self.last_grid_cell: list[int] = [0, 0] # last cell occupied in BOXobjectgrid
+        self.grid_query_size: list[int] = [1, 1]            # managed internally by BOXgrid
+        self.grid_cell: list[int] = [0, 0]                  # managed internally by BOXgrid
+        self.last_grid_cell: list[int] = [0, 0]             # managed internally by BOXgrid
+        self.last_grid_region: list[int] = [0, 0]             # managed internally by BOXgrid
+        self.grid_neighbors: list[list['BOXobject']] = []   # managed internally by BOXgrid
 
         self.set_flag(flags)
 

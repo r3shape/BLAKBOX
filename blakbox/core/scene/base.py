@@ -14,8 +14,9 @@ class BOXscene(blakbox.atom.BOXatom):
         self.tilemap: blakbox.scene.BOXtilemap = blakbox.scene.BOXtilemap(self, tile_size, grid_size)
 
         self.app.window.mod_display(self.tilemap.grid_size_raw)
+        self.world: blakbox.scene.BOXworld = blakbox.scene.BOXworld(self)
         self.camera: blakbox.pipeline.BOXcamera = blakbox.pipeline.BOXcamera(app.window)
-        self.physics: blakbox.pipeline.BOXphysics = blakbox.pipeline.BOXphysics(self.tilemap)
+        self.physics: blakbox.pipeline.BOXphysics = blakbox.pipeline.BOXphysics(self.tilemap, self.world)
         self.renderer: blakbox.pipeline.BOXrenderer = blakbox.pipeline.BOXrenderer(self, app.window, self.camera)
         
     def exit(self) -> None: raise NotImplementedError

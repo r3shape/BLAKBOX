@@ -34,7 +34,7 @@ class BOXrenderer(BOXatom):
     """ RENDER CALL"""
     def commit_objectv(self, objects: list[BOXobject]) -> None:
         if not isinstance(objects, list): return
-        for object in objects: self.commit_object(object)
+        for obj in objects: self.commit_object(obj)
     
     def commit_surface(self, surface: pg.Surface, pos: list[int], offset: list[float] = None) -> None:
         if not isinstance(surface, pg.Surface): return
@@ -53,27 +53,27 @@ class BOXrenderer(BOXatom):
         self.blitv.append([y, surface, pg.Rect(pos, surface.size), [x, y], offset])
         self.blits += 1
 
-    def commit_object(self, object: BOXobject, surface: pg.Surface = None, offset: list[float] = None) -> None:
-        if not isinstance(object, BOXobject): return
+    def commit_object(self, obj: BOXobject, surface: pg.Surface = None, offset: list[float] = None) -> None:
+        if not isinstance(obj, BOXobject): return
         if self.blits + 1 > 4096: return
-        if object is None: return
+        if obj is None: return
 
         # frustum culling
-        x, y = object.pos
-        w, h = object.size
+        x, y = obj.pos
+        w, h = obj.size
         cx, cy = self.camera.pos
         cw, ch = self.camera.viewport_size
         if x + w < cx or x > cx + cw\
         or y + h < cy or y > cy + ch:
-            object.rem_flag(object.flags.VISIBLE)
+            obj.rem_flag(obj.flags.VISIBLE)
             return
-        else: object.set_flag(object.flags.VISIBLE)
+        else: obj.set_flag(obj.flags.VISIBLE)
 
         if surface is None:
-            surf, rect = object.rotated
+            surf, rect = obj.rotated
         else:
-            surf = pg.transform.rotate(surface, object.rotation)
-            rect = surf.get_frect(center=object.center)
+            surf = pg.transform.rotate(surface, obj.rotation)
+            rect = surf.get_frect(center=obj.center)
 
         self.blitv.append([y, surf, rect, [x, y], offset])
         self.blits += 1
